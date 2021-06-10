@@ -17,9 +17,9 @@ class Stack():
         self._stack.append(element)
     def clear(self):
         self._stack.clear()
-    def __str__(self):
+    def __repr__(self):
         return str(self._stack)
 
 def nodo2tree(root):
     children = [nodo2tree(n) for n in root.children]
-    return Tree({'type':root.get_type(), 'value':root.value}, children)
+    return Tree(root.get_annotated(), children)

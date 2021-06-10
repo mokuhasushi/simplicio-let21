@@ -12,6 +12,8 @@ class Nodo():
         self.children.append(nodo)
     def get_type(self):
         return "Nodo"
+    def get_annotated(self):
+        return {'type':self.get_type()}
     def __repr__(self):
         return f"{self.get_type()}: value: {self.value}, children:" + \
             f"{[n for n in self.children]}"
@@ -82,3 +84,5 @@ class NodoNumero(Nodo):
         super().__init__(value)
     def get_type(self):
         return "Numero"
+    def get_annotated(self):
+        return {'type': self.get_type(), 'value': self.value}

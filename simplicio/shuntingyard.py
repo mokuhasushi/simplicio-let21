@@ -7,6 +7,8 @@ operatori_binari = {'+', '-', '*', ':', '/', '^'}
 # TODO: rappresentare il meno unario con un -
 operatori_unari = {'~'}
 parentesi = {'(':')', '[':']', '{':'}'}
+nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
+    '{':nodi.NodoParentesiGraffe}
 
 # Precedenze degli operatori.
 precedenze_operatori = {'^' : 5, '/' : 4, '~' : 3,
@@ -29,6 +31,16 @@ def gt(op1, op2):
 
 # Funzione principale da chiamare
 def parse_expr(expr):
+    stripped_expr = "".join(expr.split())
+    try:
+        return parse(stripped_expr)
+    except ParseException as pe:
+        print(pe)#,
+#        "\noperatori: ", pe.operands,
+#        "\noperandi: ", pe.operators,
+#        "\nespressione rimanente: ", pe.expr)
+
+def parse(expr):
     operatori = Stack()
     operandi = Stack()
     # x è il simbolo 'sentinella', come descritto nella referenza
@@ -38,8 +50,10 @@ def parse_expr(expr):
     # Controllo se il parsing è terminato correttamente
     # TODO: Controllare se basta controllare lo stack vuoto
     if (expr_stacked.peek() != '#'):
-        raise ParseException("ParseError: carattere terminale non trovato!",
-            expr=expr_stacked)
+        raise ParseException("Carattere terminale non trovato!",
+            operatori,
+            operandi,
+            expr_stacked)
     return operandi.peek()
 
 # Corrisponde alla regola della grammatica di riferimento:
@@ -78,7 +92,7 @@ def p(operatori, operandi, expr):
         # aggiungo un nodo per le parentesi, con un singolo figlio
         tree = operandi.pop()
         #TODO vari tipi di parentesi
-        operandi.push(nodi.NodoParentesiTonde(0, [tree]))
+        operandi.push(nodi_parentesi[lp](0, [tree]))
         # rimuovo il simbolo sentinella
         operatori.pop()
     elif next_token in unOps:
