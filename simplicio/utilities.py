@@ -1,7 +1,7 @@
 # Invece di Stack di liblet, uso deque per implementare lo stack. Rispetto a una
 # rappresentazione tramite lista, l'accesso all'ultimo elemento accade in O(n)
 from collections import deque
-
+from liblet import Tree
 
 class Stack():
     def __init__(self, iterable=None):
@@ -17,3 +17,9 @@ class Stack():
         self._stack.append(element)
     def clear(self):
         self._stack.clear()
+    def __str__(self):
+        return str(self._stack)
+
+def nodo2tree(root):
+    children = [nodo2tree(n) for n in root.children]
+    return Tree({'type':root.get_type(), 'value':root.value}, children)

@@ -1,4 +1,4 @@
 .PHONY = test
 
 test:
-	python -m tests.shuntingyard_test
+	python -m tests.shuntingyard_test -v
