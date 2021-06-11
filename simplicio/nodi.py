@@ -8,6 +8,7 @@ class Nodo():
         self.colore = ""
         self.boxed = False
         self.leaf = False
+        self.clear_after_read_flag = False
     def add_children(self, nodo):
         self.children.append(nodo)
     def get_type(self):
@@ -22,6 +23,10 @@ class Nodo():
             main_text = "\\boxed{" + main_text + "}"
         if self.colore != "":
             main_text = "\\color{" + self.colore + "} {" + main_text + "}"
+        if self.clear_after_read_flag:
+            self.colore = ""
+            self.boxed = False
+            self.clear_after_read_flag = False
         return main_text
     def get_latex_main(self):
         return ""
@@ -54,7 +59,22 @@ class Nodo():
         elif len(self.children) > 1 and not self.children[1].leaf:
             self.children[1] = self.children[1].solve_step()
             return self
-        return NodoNumero(self.operate(), self.id)
+        ret = NodoNumero(self.operate(), self.id)
+        ret.boxed = True
+        ret.colore = "green"
+        ret.clear_after_read_flag = True
+        return ret
+    def box_leaf(self):
+        if not self.children[0].leaf:
+            self.children[0].box_leaf()
+            return
+        elif len(self.children) > 1 and not self.children[1].leaf:
+            self.children[1].box_leaf()
+            return
+        self.boxed = True
+        self.colore = "red"
+        return
+
     def operate(self):
         pass
     # Non so se servono

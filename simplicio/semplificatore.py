@@ -49,22 +49,22 @@ class Semplificatore():
         for tipo_parentesi in [self.nodes_type2node_id[self.tipi_nodi['tonde']],
                   self.nodes_type2node_id[self.tipi_nodi['quadre']],
                   self.nodes_type2node_id[self.tipi_nodi['graffe']]]:
+            prev = nodi.Nodo()
             for nodo_id in tipo_parentesi:
                 par, cur = self.trova_nodo(nodo_id)
                 cur.colore = "blue"
-                texts.append(self.root.get_latex())
+                # texts.append(self.root.get_latex())
                 solving = cur.children[0]
-                solving.boxed = True
-                solving.colore = "red"
                 while not solving.leaf:
-                    solving = solving.solve_step()
+                    solving.box_leaf()
                     texts.append(self.root.get_latex())
-                cur.children[0] = solving
-                solving.colore = "green"
-                solving.boxed = True
-                texts.append(self.root.get_latex())
-                solving.boxed = False
-                solving.colore = ""
+                    solving = solving.solve_step()
+                    # Se il nodo che stiamo risolvendo è una foglia, ho finito
+                    if solving.leaf:
+                        if par.children[0].id == cur.id:
+                            par.children[0] = solving
+                        else:
+                            par.children[1] = solving
                 cur.colore = ""
         return texts
     def trova_nodo(self, id):
