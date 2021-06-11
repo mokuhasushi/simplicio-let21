@@ -7,16 +7,21 @@ class Nodo():
         self.children = children
         self.colore = ""
         self.boxed = False
+        self.leaf = False
     def add_children(self, nodo):
         self.children.append(nodo)
     def get_type(self):
         return "Nodo"
     def get_annotated(self):
-        return {'type':self.get_type(), 'id':self.id, 'colore':self.colore}
+        d = {'type':self.get_type(), 'id':self.id}
+        if self.colore != "": d['colore'] = self.colore
+        return d
     def get_latex(self):
         main_text = self.get_latex_main()
+        if self.boxed:
+            main_text = "\\boxed{" + main_text + "}"
         if self.colore != "":
-            return "\\color{" + self.colore + "} {" + main_text + "}"
+            main_text = "\\color{" + self.colore + "} {" + main_text + "}"
         return main_text
     def get_latex_main(self):
         return ""
@@ -42,6 +47,16 @@ class Nodo():
             self.id = n
             n += 1
         return n
+    def solve_step(self):
+        if not self.children[0].leaf:
+            self.children[0] = self.children[0].solve_step()
+            return self
+        elif len(self.children) > 1 and not self.children[1].leaf:
+            self.children[1] = self.children[1].solve_step()
+            return self
+        return NodoNumero(self.operate(), self.id)
+    def operate(self):
+        pass
     # Non so se servono
     # def colora(self, colore, id=-1):
     #     def colora_helper(nodo, colore):
@@ -68,7 +83,8 @@ class NodoParentesiTonde(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "ParentesiTonde"
-
+    def operate(self):
+        return self.children[0].value
     def get_latex_main(self):
         main_text = f"\\left( {self.children[0].get_latex()} \\right)"
         return main_text
@@ -78,6 +94,8 @@ class NodoParentesiQuadre(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "ParentesiQuadre"
+    def operate(self):
+        return self.children[0].value
     def get_latex_main(self):
         return f"\\left[ {self.children[0].get_latex()} \\right]"
 
@@ -86,6 +104,8 @@ class NodoParentesiGraffe(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "ParentesiGraffe"
+    def operate(self):
+        return self.children[0].value
     def get_latex_main(self):
         return "\\left\{" + f" {self.children[0].get_latex()} " + "\\right\}"
 
@@ -94,6 +114,8 @@ class NodoAddizione(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "Addizione"
+    def operate(self):
+        return self.children[0].value + self.children[1].value
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} + {self.children[1].get_latex()}"
 
@@ -102,6 +124,8 @@ class NodoSottrazione(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "Sottrazione"
+    def operate(self):
+        return self.children[0].value - self.children[1].value
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} - {self.children[1].get_latex()}"
 
@@ -110,6 +134,8 @@ class NodoMoltiplicazione(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "Moltiplicazione"
+    def operate(self):
+        return self.children[0].value * self.children[1].value
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} \\times {self.children[1].get_latex()}"
 
@@ -118,6 +144,8 @@ class NodoDivisione(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "Divisione"
+    def operate(self):
+        return self.children[0].value // self.children[1].value
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} : {self.children[1].get_latex()}"
 
@@ -126,6 +154,8 @@ class NodoMenoUnario(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "MenoUnario"
+    def operate(self):
+        return -self.children[0].value
     def get_latex_main(self):
         return f"- {self.children[0].get_latex()}"
 
@@ -142,12 +172,16 @@ class NodoPotenza(Nodo):
         super().__init__(value, children)
     def get_type(self):
         return "Potenza"
+    def operate(self):
+        return self.children[0].value ** self.children[1].value
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} ^ {{{self.children[1].get_latex()}}}"
 
 class NodoNumero(Nodo):
-    def __init__(self, value):
+    def __init__(self, value, id=-1):
         super().__init__(value)
+        self.leaf = True
+        self.id = id
     def get_type(self):
         return "Numero"
     def get_annotated(self):

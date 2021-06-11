@@ -52,12 +52,19 @@ class Semplificatore():
             for nodo_id in tipo_parentesi:
                 par, cur = self.trova_nodo(nodo_id)
                 cur.colore = "blue"
-# #                self.root = self.root.colora("blue", nodo_id)
-#                 if par.children[0].id == cur.id:
-#                     par.children[0] = cur
-#                 else:
-#                     par.children[1] = cur
                 texts.append(self.root.get_latex())
+                solving = cur.children[0]
+                solving.boxed = True
+                solving.colore = "red"
+                while not solving.leaf:
+                    solving = solving.solve_step()
+                    texts.append(self.root.get_latex())
+                cur.children[0] = solving
+                solving.colore = "green"
+                solving.boxed = True
+                texts.append(self.root.get_latex())
+                solving.boxed = False
+                solving.colore = ""
                 cur.colore = ""
         return texts
     def trova_nodo(self, id):
