@@ -195,7 +195,13 @@ class NodoPotenza(Nodo):
     def operate(self):
         return self.children[0].value ** self.children[1].value
     def get_latex_main(self):
-        return f"{self.children[0].get_latex()} ^ {{{self.children[1].get_latex()}}}"
+        # TODO attualmente mi pare sensato richiedere che l'esponente venga
+        # racchiuso tra parentesi, ma non voglio visualizzarle in latex
+        if self.children[1].get_type() in {"ParentesiTonde", "ParentesiQuadre", "ParentesiGraffe"}:
+            exp = self.children[1].children[0].get_latex()
+        else:
+            exp = self.children[1].get_latex()
+        return f"{self.children[0].get_latex()} ^ {{{exp}}}"
 
 class NodoNumero(Nodo):
     def __init__(self, value, id=-1):

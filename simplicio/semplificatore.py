@@ -66,6 +66,14 @@ class Semplificatore():
                         else:
                             par.children[1] = solving
                 cur.colore = ""
+        solving = self.root
+        while not solving.leaf:
+            solving.box_leaf()
+            texts.append(self.root.get_latex())
+            solving = solving.solve_step()
+            if solving.leaf:
+                self.root = solving
+        texts.append(self.root.get_latex())
         return texts
     def trova_nodo(self, id):
         par, cur = self.root, self.root
