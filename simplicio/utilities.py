@@ -2,6 +2,11 @@
 # rappresentazione tramite lista, l'accesso all'ultimo elemento accade in O(n)
 from collections import deque
 from liblet import Tree
+import math
+import nodi
+
+nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
+    '{':nodi.NodoParentesiGraffe}
 
 class Stack():
     def __init__(self, iterable=None):
@@ -23,3 +28,6 @@ class Stack():
 def nodo2tree(root):
     children = [nodo2tree(n) for n in root.children]
     return Tree(root.get_annotated(), children)
+
+def lcm(a, b):
+    return abs(a*b) // math.gcd(a,b)

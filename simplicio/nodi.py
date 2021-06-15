@@ -1,5 +1,10 @@
+import math
+import exceptions
+import utilities
+
+tipo_parentesi = {"ParentesiTonde", "ParentesiQuadre", "ParentesiGraffe"}
 class Nodo():
-    def __init__(self, value=None, children=None):
+    def __init__(self, value=None, children=None, domain="N"):
         self.id = -1
         self.value = value
         if children == None:
@@ -9,6 +14,7 @@ class Nodo():
         self.boxed = False
         self.leaf = False
         self.clear_after_read_flag = False
+        self.domain = domain
     def add_children(self, nodo):
         self.children.append(nodo)
     def get_type(self):
@@ -59,7 +65,10 @@ class Nodo():
         elif len(self.children) > 1 and not self.children[1].leaf:
             self.children[1] = self.children[1].solve_step()
             return self
-        ret = NodoNumero(self.operate(), self.id)
+        if self.domain != 'Q':
+            ret = NodoNumero(self.operate(), self.id)
+        else:
+            ret = self.operate_Q()
         ret.boxed = True
         ret.colore = "green"
         ret.clear_after_read_flag = True
@@ -77,6 +86,16 @@ class Nodo():
 
     def operate(self):
         pass
+    def operate_Q(self):
+        pass
+    def get_num_and_den(self):
+        raise exceptions.NodeException("Errore, get num and den chiamato su un \
+        nodo operazione!", nodo=self)
+    def get_children_nums_and_dens(self):
+        n1, d1 = self.children[0].get_num_and_den()
+        n2, d2 = self.children[1].get_num_and_den()
+        return n1, d1, n2, d2
+
     # Non so se servono
     # def colora(self, colore, id=-1):
     #     def colora_helper(nodo, colore):
@@ -99,49 +118,67 @@ class Nodo():
 
 
 class NodoParentesiTonde(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiTonde"
     def operate(self):
         return self.children[0].value
+    def operate_Q(self):
+        return self.children[0]
     def get_latex_main(self):
         main_text = f"\\left( {self.children[0].get_latex()} \\right)"
         return main_text
 
 class NodoParentesiQuadre(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiQuadre"
     def operate(self):
         return self.children[0].value
+    def operate_Q(self):
+        return self.children[0]
     def get_latex_main(self):
         return f"\\left[ {self.children[0].get_latex()} \\right]"
 
 class NodoParentesiGraffe(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiGraffe"
     def operate(self):
         return self.children[0].value
+    def operate_Q(self):
+        return self.children[0]
     def get_latex_main(self):
         return "\\left\{" + f" {self.children[0].get_latex()} " + "\\right\}"
 
 class NodoAddizione(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Addizione"
     def operate(self):
         return self.children[0].value + self.children[1].value
+    def operate_Q(self):
+        n1, d1, n2, d2 = self.get_children_nums_and_dens()
+        den = utilities.lcm(d1, d2)
+        num = n1 * (den//d1) + n2 * (den//d2)
+        gcd = math.gcd(num, den)
+        if gcd > 1:
+            num /= gcd
+            den /= gcd
+        if den != 1:
+            return NodoFrazione(children=[NodoNumero(num), NodoNumero(den)])#DOMAIN
+        else:
+            return NodoNumero(num)
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} + {self.children[1].get_latex()}"
 
 class NodoSottrazione(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Sottrazione"
     def operate(self):
@@ -150,8 +187,8 @@ class NodoSottrazione(Nodo):
         return f"{self.children[0].get_latex()} - {self.children[1].get_latex()}"
 
 class NodoMoltiplicazione(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Moltiplicazione"
     def operate(self):
@@ -160,8 +197,8 @@ class NodoMoltiplicazione(Nodo):
         return f"{self.children[0].get_latex()} \\times {self.children[1].get_latex()}"
 
 class NodoDivisione(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Divisione"
     def operate(self):
@@ -170,8 +207,8 @@ class NodoDivisione(Nodo):
         return f"{self.children[0].get_latex()} : {self.children[1].get_latex()}"
 
 class NodoMenoUnario(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "MenoUnario"
     def operate(self):
@@ -180,16 +217,38 @@ class NodoMenoUnario(Nodo):
         return f"- {self.children[0].get_latex()}"
 
 class NodoFrazione(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Frazione"
+    def operate(self):
+        return self.children[0].value // self.children[1].value
+    def operate_Q(self):
+        num, den = self.children[0], self.children[1]
+        gcd = math.gcd(num.value, den.value)
+        # if num % den == 0:
+        #     return num // den
+        if gcd > 1:
+            num.value /= gcd
+            den.value /= gcd
+        self.leaf = True
+        return self
+    def get_num_and_den(self):
+        return self.children[0].get_num_and_den(), self.children[1].get_num_and_den()
     def get_latex_main(self):
-        return f"\\frac{{{self.children[0].get_latex()}}} {{{self.children[1].get_latex()}}}"
+        if self.children[0].get_type() in tipo_parentesi:
+            num = self.children[0].children[0].get_latex()
+        else:
+            num = self.children[0].get_latex()
+        if self.children[1].get_type() in tipo_parentesi:
+            den = self.children[1].children[0].get_latex()
+        else:
+            den = self.children[1].get_latex()
+        return f"\\frac{{{num}}} {{{den}}}"
 
 class NodoPotenza(Nodo):
-    def __init__(self, value=None, children=None):
-        super().__init__(value, children)
+    def __init__(self, value=None, children=None, domain='N'):
+        super().__init__(value, children, domain)
     def get_type(self):
         return "Potenza"
     def operate(self):
@@ -197,15 +256,15 @@ class NodoPotenza(Nodo):
     def get_latex_main(self):
         # TODO attualmente mi pare sensato richiedere che l'esponente venga
         # racchiuso tra parentesi, ma non voglio visualizzarle in latex
-        if self.children[1].get_type() in {"ParentesiTonde", "ParentesiQuadre", "ParentesiGraffe"}:
+        if self.children[1].get_type() in tipo_parentesi:
             exp = self.children[1].children[0].get_latex()
         else:
             exp = self.children[1].get_latex()
         return f"{self.children[0].get_latex()} ^ {{{exp}}}"
 
 class NodoNumero(Nodo):
-    def __init__(self, value, id=-1):
-        super().__init__(value)
+    def __init__(self, value, id=-1, domain='N'):
+        super().__init__(value, domain=domain)
         self.leaf = True
         self.id = id
     def get_type(self):
@@ -214,5 +273,7 @@ class NodoNumero(Nodo):
         d = super().get_annotated()
         d['value'] = self.value
         return d
+    def get_num_and_den(self):
+        return self.value, 1
     def get_latex_main(self):
         return f"{self.value}"
