@@ -38,10 +38,12 @@ class Semplificatore():
         self.root.numera(0)
         self.get_nodes_type(root)
     # Percorre ricorsivamente l'albero e salva i nodi per tipo
+    # Per risolvere la parentesizzazione libera è stato sufficiente recuperare
+    # i nodi con una visita in post ordine
     def get_nodes_type(self, tree):
-        self.nodes_type2node_id[tree.get_type()].append(tree.id)
         for c in tree.children:
             self.get_nodes_type(c)
+        self.nodes_type2node_id[tree.get_type()].append(tree.id)
     # risolve tutta l'equazione, a partire dalle parentesi
     def solve(self):
         texts = ["&"+self.root.get_latex()]
@@ -76,6 +78,7 @@ class Semplificatore():
         texts.append(self.root.get_latex())
         return texts
     def trova_nodo(self, id):
+        print(id)
         par, cur = self.root, self.root
         if id == self.root.id :
             return par, cur

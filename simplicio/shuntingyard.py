@@ -74,7 +74,10 @@ def p(operatori, operandi, expr, domain="N"):
     next_token = expr.peek()
     # caso valore numerico --> v
     if next_token.isdigit():
-        operandi.push(mkLeaf(expr.pop(), domain))
+        v = expr.pop()
+        while expr.peek().isdigit():
+            v += expr.pop()
+        operandi.push(mkLeaf(v, domain))
     # caso parentesi --> "(" E ")"
     elif next_token in parentesi.keys():
         # salvo il tipo di parentesi
@@ -93,7 +96,7 @@ def p(operatori, operandi, expr, domain="N"):
         operandi.push(nodi_parentesi[lp](0, [tree]))
         # rimuovo il simbolo sentinella
         operatori.pop()
-    elif next_token in unOps:
+    elif next_token in operatori_unari:
         pushOp(expr.pop(), operatori, operandi, domain)
         p(operatori, operandi, expr, domain)
     else:
@@ -118,7 +121,7 @@ def popOp(operatori, operandi, domain):
         t0 = operandi.pop()
         operandi.push(mkNode(operatori.pop(), t0, t1, domain))
     else:
-        operandi.push(mkNode(operatori.pop(), operandi.pop(), domain))
+        operandi.push(mkNode(operatori.pop(), operandi.pop(), domain=domain))
     return operatori, operandi
 
 # Push di un operatore. Prima però bisogna costruire un albero con tutti gli

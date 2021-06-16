@@ -95,6 +95,15 @@ class Nodo():
         n1, d1 = self.children[0].get_num_and_den()
         n2, d2 = self.children[1].get_num_and_den()
         return n1, d1, n2, d2
+    def reduce_frac(num, den, id=-1):
+        gcd = math.gcd(num, den)
+        if gcd > 1:
+            num //= gcd
+            den //= gcd
+        if den != 1:
+            return NodoFrazione(children=[NodoNumero(num), NodoNumero(den)], domain='Q')#DOMAIN
+        else:
+            return NodoNumero(num, domain='Q')
 
     # Non so se servono
     # def colora(self, colore, id=-1):
@@ -165,14 +174,9 @@ class NodoAddizione(Nodo):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
         num = n1 * (den//d1) + n2 * (den//d2)
-        gcd = math.gcd(num, den)
-        if gcd > 1:
-            num /= gcd
-            den /= gcd
-        if den != 1:
-            return NodoFrazione(children=[NodoNumero(num), NodoNumero(den)])#DOMAIN
-        else:
-            return NodoNumero(num)
+        ret = Nodo.reduce_frac(num, den)
+        ret.id = self.id
+        return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} + {self.children[1].get_latex()}"
 
@@ -183,6 +187,13 @@ class NodoSottrazione(Nodo):
         return "Sottrazione"
     def operate(self):
         return self.children[0].value - self.children[1].value
+    def operate_Q(self):
+        n1, d1, n2, d2 = self.get_children_nums_and_dens()
+        den = utilities.lcm(d1, d2)
+        num = n1 * (den//d1) - n2 * (den//d2)
+        ret = Nodo.reduce_frac(num, den)
+        ret.id = self.id
+        return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} - {self.children[1].get_latex()}"
 
@@ -193,6 +204,13 @@ class NodoMoltiplicazione(Nodo):
         return "Moltiplicazione"
     def operate(self):
         return self.children[0].value * self.children[1].value
+    def operate_Q(self):
+        n1, d1, n2, d2 = self.get_children_nums_and_dens()
+        num = n1 * n2
+        den = d1 * d2
+        ret = Nodo.reduce_frac(num, den)
+        ret.id = self.id
+        return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} \\times {self.children[1].get_latex()}"
 
@@ -203,6 +221,13 @@ class NodoDivisione(Nodo):
         return "Divisione"
     def operate(self):
         return self.children[0].value // self.children[1].value
+    def operate_Q(self):
+        n1, d1, n2, d2 = self.get_children_nums_and_dens()
+        num = n1 * d2
+        den = d1 * n2
+        ret = Nodo.reduce_frac(num, den)
+        ret.id = self.id
+        return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} : {self.children[1].get_latex()}"
 
@@ -213,28 +238,47 @@ class NodoMenoUnario(Nodo):
         return "MenoUnario"
     def operate(self):
         return -self.children[0].value
+    def operate_Q(self):
+        if self.children[0].get_type() == "Numero":
+            self.children[0].value *= -1
+        else:
+            self.children[0].children[0].value *= -1
+        return self.children[0]
+
     def get_latex_main(self):
         return f"- {self.children[0].get_latex()}"
 
 class NodoFrazione(Nodo):
     def __init__(self, value=None, children=None, domain='N'):
         super().__init__(value, children, domain)
+        if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
+        if self.children[0].get_type() in tipo_parentesi:
+            self.children[0] = self.children[0].children[0]
+        if self.children[1].get_type() in tipo_parentesi:
+            self.children[1] = self.children[1].children[0]
     def get_type(self):
         return "Frazione"
     def operate(self):
         return self.children[0].value // self.children[1].value
     def operate_Q(self):
         num, den = self.children[0], self.children[1]
-        gcd = math.gcd(num.value, den.value)
-        # if num % den == 0:
-        #     return num // den
-        if gcd > 1:
-            num.value /= gcd
-            den.value /= gcd
-        self.leaf = True
-        return self
+        if num.get_type() == "Frazione" and den.get_type() == "Frazione":
+            n_num = num.children[0].value * den.children[1].value
+            n_den = num.children[1].value * den.children[0].value
+        elif num.get_type() == "Frazione":
+            n_num = num.children[0].value
+            n_den = num.children[1].value * den.value
+        elif den.get_type() == "Frazione":
+            n_num = num.value * den.children[1].value
+            n_den = den.children[0].value
+        else:
+            n_num, n_den = num.value, den.value
+        ret = Nodo.reduce_frac(n_num, n_den)
+        ret.id = self.id
+        ret.leaf = True
+        return ret
     def get_num_and_den(self):
-        return self.children[0].get_num_and_den(), self.children[1].get_num_and_den()
+        return self.children[0].value, self.children[1].value
     def get_latex_main(self):
         if self.children[0].get_type() in tipo_parentesi:
             num = self.children[0].children[0].get_latex()
@@ -244,15 +288,25 @@ class NodoFrazione(Nodo):
             den = self.children[1].children[0].get_latex()
         else:
             den = self.children[1].get_latex()
+        if self.children[1].value == 1:
+            return str(num)
         return f"\\frac{{{num}}} {{{den}}}"
 
 class NodoPotenza(Nodo):
     def __init__(self, value=None, children=None, domain='N'):
         super().__init__(value, children, domain)
+        if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
+        if self.children[0].get_type() in tipo_parentesi:
+            self.children[0] = self.children[0].children[0]
+        if self.children[1].get_type() in tipo_parentesi:
+            self.children[1] = self.children[1].children[0]
     def get_type(self):
         return "Potenza"
     def operate(self):
         return self.children[0].value ** self.children[1].value
+    # DA FARE
+    def operate_Q(self):
+        return NodoNumero(self.children[0].value ** self.children[1].value, id=self.id)
     def get_latex_main(self):
         # TODO attualmente mi pare sensato richiedere che l'esponente venga
         # racchiuso tra parentesi, ma non voglio visualizzarle in latex
