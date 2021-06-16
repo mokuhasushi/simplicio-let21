@@ -1,11 +1,11 @@
-# Il riferimento per questa implementazione è:
+domain='R'# Il riferimento per questa implementazione è:
 # https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
 from utilities import Stack, nodi_parentesi
 from exceptions import ParseException
 import nodi
 operatori_binari = {'+', '-', '*', ':', '/', '^'}
 # TODO: rappresentare il meno unario con un -
-operatori_unari = {'~'}
+operatori_unari = {'-', '~'}
 parentesi = {'(':')', '[':']', '{':'}'}
 
 # Precedenze degli operatori.
@@ -28,8 +28,9 @@ def gt(op1, op2):
     return precedenze_operatori[op1] > precedenze_operatori[op2]
 
 # Funzione principale da chiamare
-def parse_expr(expr, domain="N"):
+def parse_expr(expr, domain='R'):
     stripped_expr = "".join(expr.split())
+    stripped_expr += '#'
     try:
         return parse(stripped_expr, domain)
     except ParseException as pe:
@@ -38,7 +39,7 @@ def parse_expr(expr, domain="N"):
 #        "\noperandi: ", pe.operators,
 #        "\nespressione rimanente: ", pe.expr)
 
-def parse(expr, domain="N"):
+def parse(expr, domain='R'):
     operatori = Stack()
     operandi = Stack()
     # x è il simbolo 'sentinella', come descritto nella referenza
@@ -56,7 +57,7 @@ def parse(expr, domain="N"):
 
 # Corrisponde alla regola della grammatica di riferimento:
 # E --> P {B P}*
-def e(operatori, operandi, expr, domain="N"):
+def e(operatori, operandi, expr, domain='R'):
     p(operatori, operandi, expr, domain)
     n = expr.peek()
     while n in operatori_binari:
@@ -70,7 +71,7 @@ def e(operatori, operandi, expr, domain="N"):
 
 #Corrisponde alla regola della grammatica di riferimento:
 # P --> v | "(" E ")" | U P
-def p(operatori, operandi, expr, domain="N"):
+def p(operatori, operandi, expr, domain='R'):
     next_token = expr.peek()
     # caso valore numerico --> v
     if next_token.isdigit():
@@ -97,7 +98,13 @@ def p(operatori, operandi, expr, domain="N"):
         # rimuovo il simbolo sentinella
         operatori.pop()
     elif next_token in operatori_unari:
-        pushOp(expr.pop(), operatori, operandi, domain)
+        # Questo è un trucco: il riconoscimento di un operatore unario avviene
+        # senza problemi in questa funzione, ma in seguito può causare danni.
+        # Quindi scambio '-' con '~', evitando di incorrere in problemi
+        _op = expr.pop()
+        if _op == '-':
+            _op = '~'
+        pushOp(_op, operatori, operandi, domain)
         p(operatori, operandi, expr, domain)
     else:
         raise ParseException("Errore in p: regola non trovata!",

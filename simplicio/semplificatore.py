@@ -78,7 +78,6 @@ class Semplificatore():
         texts.append(self.root.get_latex())
         return texts
     def trova_nodo(self, id):
-        print(id)
         par, cur = self.root, self.root
         if id == self.root.id :
             return par, cur
