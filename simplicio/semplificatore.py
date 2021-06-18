@@ -1,4 +1,5 @@
 import nodi
+import exceptions
 
 class Semplificatore():
     # Non sono sicuro di questo approccio. Il vantaggio è che se dovessi
@@ -65,8 +66,16 @@ class Semplificatore():
                     if solving.leaf:
                         if par.children[0].id == cur.id:
                             par.children[0] = solving
-                        else:
+                        elif len(par.children) > 1 and par.children[1].id == cur.id:
                             par.children[1] = solving
+                        # caso particolare, ottenuto mettendo tutta l'espressione
+                        # dentro le parentesi. il metodo trova nodo ritorna
+                        # par = cur = root. I test sui figli ovviamente falliscono
+                        elif par.id == cur.id:
+                            par = solving
+                        else:
+                            raise Exception("Non dovrebbe mai succedere... Semplificatore")
+
                 cur.colore = ""
         solving = self.root
         while not solving.leaf:
@@ -93,6 +102,3 @@ class Semplificatore():
             else:
                 cur = par.children[1]
         return par,cur
-    # risolve una parentesi ?
-    def step(self, id):
-        pass

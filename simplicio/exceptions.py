@@ -12,3 +12,7 @@ class NodeException(Exception):
 class DomainException(Exception):
     def __init__(self, msg="Errore nell'espressione dovuta al dominio'", nodo=None):
         self.nodo = nodo
+
+class EmptyStringException(Exception):
+    def __init__(self, msg="Ricevuta una stringa vuota!"):
+        pass

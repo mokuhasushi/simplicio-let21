@@ -53,10 +53,7 @@ class Nodo():
         # Questo caso è pericolo, rovina la ricerca binaria.
         # Servirà solo se si vorrà unire vari nodi es 3 + 3 + 3 + 1 ...
         else:
-            for c in self.children:
-                n = c.numera(n)
-            self.id = n
-            n += 1
+            raise NodeException("Albero non binario!")
         return n
     def solve_step(self):
         #risoluzione in un passaggio di tutte le operazioni simili
@@ -131,23 +128,6 @@ class Nodo():
         for c in self.children:
             ret = ret and c.check_if_all_children_of_type(typename)
         return ret
-    # Non so se servono
-    # def colora(self, colore, id=-1):
-    #     def colora_helper(nodo, colore):
-    #         nodo.colore = colore
-    #     self.cerca_id_df(id, colora_helper, colore)
-    #     return self
-    # def decolora(self):
-    #     self.colore = ""
-    # def cerca_id_df(self, id, f, arg=None):
-    #     if id == self.id or id < 0:
-    #         if arg == None:
-    #             f(self)
-    #         else:
-    #             f(self, arg)
-    #     else:
-    #         self.children = [c.cerca_id_df(id, f, arg) for c in self.children]
-    #     return self
     def __repr__(self):
         return f"{self.get_annotated()}, {[n for n in self.children]}"
 
@@ -278,6 +258,7 @@ class NodoFrazione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
         if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
+        # rimuovo le parentesi da num e den
         if self.children[0].get_type() in tipo_parentesi:
             self.children[0] = self.children[0].children[0]
         if self.children[1].get_type() in tipo_parentesi:
@@ -306,14 +287,8 @@ class NodoFrazione(Nodo):
     def get_num_and_den(self):
         return self.children[0].value, self.children[1].value
     def get_latex_main(self):
-        if self.children[0].get_type() in tipo_parentesi:
-            num = self.children[0].children[0].get_latex()
-        else:
-            num = self.children[0].get_latex()
-        if self.children[1].get_type() in tipo_parentesi:
-            den = self.children[1].children[0].get_latex()
-        else:
-            den = self.children[1].get_latex()
+        num = self.children[0].get_latex()
+        den = self.children[1].get_latex()
         if self.children[1].value == 1:
             return str(num)
         return f"\\frac{{{num}}} {{{den}}}"
@@ -322,6 +297,7 @@ class NodoPotenza(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
         if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
+        # Non ho bisogno di nodi parentesi per base ed esponente!
         if self.children[0].get_type() in tipo_parentesi:
             self.children[0] = self.children[0].children[0]
         if self.children[1].get_type() in tipo_parentesi:
@@ -337,18 +313,16 @@ class NodoPotenza(Nodo):
                 self.children[1].children[1].value)
             if exp.get_type() == "Frazione":
                 raise exceptions.DomainException("Frazioni all'esponente non supportate!")
+            # Per come funziona il codice non dovrebbe essere mai il caso
+            else:
+                self.children[1] = exp
         if self.children[0].get_type() == "Frazione":
             self.children[0].children[0].value **= self.children[1].value
             self.children[0].children[1].value **= self.children[1].value
             return self.children[0]
         return NodoNumero(self.children[0].value ** self.children[1].value, id=self.id)
     def get_latex_main(self):
-        # TODO attualmente mi pare sensato richiedere che l'esponente venga
-        # racchiuso tra parentesi, ma non voglio visualizzarle in latex
-        if self.children[1].get_type() in tipo_parentesi:
-            exp = self.children[1].children[0].get_latex()
-        else:
-            exp = self.children[1].get_latex()
+        exp = self.children[1].get_latex()
         return f"{self.children[0].get_latex()} ^ {{{exp}}}"
 
 class NodoNumero(Nodo):

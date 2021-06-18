@@ -1,11 +1,11 @@
 # Il riferimento per questa implementazione è:
 # https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
 from utilities import Stack, nodi_parentesi
-from exceptions import ParseException
+from exceptions import ParseException, EmptyStringException
 import nodi
 operatori_binari = {'+', '-', '*', ':', '/', '^'}
 # Il simbolo '~' è una rappresentazione interna non ambigua del '-' unario. E'
-# anche riconosciuto e accettato a livello di parsing. 
+# anche riconosciuto e accettato a livello di parsing.
 operatori_unari = {'-', '~'}
 parentesi = {'(':')', '[':']', '{':'}'}
 
@@ -30,12 +30,11 @@ def gt(op1, op2):
 
 # Funzione principale da chiamare
 def parse_expr(expr, domain='R'):
+    if expr == "" or expr == "#":
+        raise EmptyStringException()
     stripped_expr = "".join(expr.split())
     stripped_expr += '#'
-    try:
-        return parse(stripped_expr, domain)
-    except ParseException as pe:
-        print(pe)#,
+    return parse(stripped_expr, domain)
 #        "\noperatori: ", pe.operands,
 #        "\noperandi: ", pe.operators,
 #        "\nespressione rimanente: ", pe.expr)
@@ -48,7 +47,7 @@ def parse(expr, domain='R'):
     expr_stacked = Stack(expr[::-1])
     e(operatori, operandi, expr_stacked, domain)
     # Controllo se il parsing è terminato correttamente
-    # TODO: Controllare se basta controllare lo stack vuoto
+    # TODO: Serve?
     if (expr_stacked.peek() != '#'):
         raise ParseException("Carattere terminale non trovato!",
             operatori,
