@@ -23,9 +23,6 @@ operatori_e_nodi = {
 
 # Funzione di utilità per controllare la precedenza .
 def gt(op1, op2):
-    '''
-    True if op1 ha una precedenza maggiore di op2
-    '''
     return precedenze_operatori[op1] > precedenze_operatori[op2]
 
 # Funzione principale da chiamare
@@ -35,9 +32,6 @@ def parse_expr(expr, domain='R'):
     stripped_expr = "".join(expr.split())
     stripped_expr += '#'
     return parse(stripped_expr, domain)
-#        "\noperatori: ", pe.operands,
-#        "\noperandi: ", pe.operators,
-#        "\nespressione rimanente: ", pe.expr)
 
 def parse(expr, domain='R'):
     operatori = Stack()
