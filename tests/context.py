@@ -8,3 +8,5 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 import shuntingyard
 import exceptions
 import semplificatore
+import utilities
+import simplicio
