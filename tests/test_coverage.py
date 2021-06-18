@@ -1,5 +1,3 @@
-# questi non sono test di unita
-# import unittest
 import pytest
 from .context import simplicio as smp
 from .context import exceptions as exc
@@ -77,5 +75,3 @@ def test_potenze():
 def test_frazione_all_esponente():
     with pytest.raises(exc.DomainException):
         smp.string2latex(caso_potenza_frazione_esponente, 'Q')
-# if __name__ == '__main__':
-#     unittest.main()

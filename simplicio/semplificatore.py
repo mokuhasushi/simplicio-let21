@@ -90,7 +90,7 @@ class Semplificatore():
         par, cur = self.root, self.root
         if id == self.root.id :
             return par, cur
-        # assumo albero binario TODO
+        # assumo albero binario
         if id < par.id:
             cur = par.children[0]
         else:

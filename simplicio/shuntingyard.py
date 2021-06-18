@@ -93,7 +93,6 @@ def p(operatori, operandi, expr, domain='R'):
                 operatori, operandi, expr)
         # aggiungo un nodo per le parentesi, con un singolo figlio
         tree = operandi.pop()
-        #TODO dominio?
         operandi.push(nodi_parentesi[lp](0, [tree]))
         # rimuovo il simbolo sentinella
         operatori.pop()
