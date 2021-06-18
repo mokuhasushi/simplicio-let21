@@ -1,10 +1,11 @@
-domain='R'# Il riferimento per questa implementazione è:
+# Il riferimento per questa implementazione è:
 # https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
 from utilities import Stack, nodi_parentesi
 from exceptions import ParseException
 import nodi
 operatori_binari = {'+', '-', '*', ':', '/', '^'}
-# TODO: rappresentare il meno unario con un -
+# Il simbolo '~' è una rappresentazione interna non ambigua del '-' unario. E'
+# anche riconosciuto e accettato a livello di parsing. 
 operatori_unari = {'-', '~'}
 parentesi = {'(':')', '[':']', '{':'}'}
 
