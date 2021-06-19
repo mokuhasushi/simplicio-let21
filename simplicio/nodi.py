@@ -15,6 +15,7 @@ class Nodo():
         self.leaf = False
         self.clear_after_read_flag = False
         self.domain = domain
+        self.precedence = -1
     def add_children(self, nodo):
         self.children.append(nodo)
     def get_type(self):
@@ -57,7 +58,7 @@ class Nodo():
         return n
     def solve_step(self):
         #risoluzione in un passaggio di tutte le operazioni simili
-        if self.check_if_all_children_of_type(self.get_type()):
+        if self.check_if_all_children_have_same_precedence(self.precedence):
             self.children[0] = self.children[0].solve_chain()
             if len(self.children) > 1:
                 self.children[1] = self.children[1].solve_chain()
@@ -87,7 +88,7 @@ class Nodo():
             ret = self.operate_Q()
         return ret
     def box_leaf(self):
-        if not self.check_if_all_children_of_type(self.get_type()):
+        if not self.check_if_all_children_have_same_precedence(self.precedence):
             if not self.children[0].leaf:
                 self.children[0].box_leaf()
                 return
@@ -120,13 +121,13 @@ class Nodo():
             return ret
         else:
             return NodoNumero(num, domain='Q')
-    def check_if_all_children_of_type(self, typename):
+    def check_if_all_children_have_same_precedence(self, prec):
         #I nodi foglia vanno bene
-        if self.get_type() != typename and self.leaf == False:
+        if self.precedence != prec and self.leaf == False:
             return False
         ret = True
         for c in self.children:
-            ret = ret and c.check_if_all_children_of_type(typename)
+            ret = ret and c.check_if_all_children_have_same_precedence(prec)
         return ret
     def __repr__(self):
         return f"{self.get_annotated()}, {[n for n in self.children]}"
@@ -172,6 +173,7 @@ class NodoParentesiGraffe(Nodo):
 class NodoAddizione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 1
     def get_type(self):
         return "Addizione"
     def operate(self):
@@ -189,6 +191,7 @@ class NodoAddizione(Nodo):
 class NodoSottrazione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 1
     def get_type(self):
         return "Sottrazione"
     def operate(self):
@@ -206,6 +209,7 @@ class NodoSottrazione(Nodo):
 class NodoMoltiplicazione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 2
     def get_type(self):
         return "Moltiplicazione"
     def operate(self):
@@ -223,6 +227,7 @@ class NodoMoltiplicazione(Nodo):
 class NodoDivisione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 2
     def get_type(self):
         return "Divisione"
     def operate(self):
@@ -240,6 +245,7 @@ class NodoDivisione(Nodo):
 class NodoMenoUnario(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 3
     def get_type(self):
         return "MenoUnario"
     def operate(self):
@@ -257,6 +263,7 @@ class NodoMenoUnario(Nodo):
 class NodoFrazione(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 4
         if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
         # rimuovo le parentesi da num e den
         if self.children[0].get_type() in tipo_parentesi:
@@ -296,6 +303,7 @@ class NodoFrazione(Nodo):
 class NodoPotenza(Nodo):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
+        self.precedence = 5
         if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
         # Non ho bisogno di nodi parentesi per base ed esponente!
         if self.children[0].get_type() in tipo_parentesi:
