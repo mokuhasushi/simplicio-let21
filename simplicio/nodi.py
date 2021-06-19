@@ -58,7 +58,7 @@ class Nodo():
         return n
     def solve_step(self):
         #risoluzione in un passaggio di tutte le operazioni simili
-        if self.check_if_all_children_have_same_precedence(self.precedence):
+        if self.check_all_children_have_same_precedence(self.precedence):
             self.children[0] = self.children[0].solve_chain()
             if len(self.children) > 1:
                 self.children[1] = self.children[1].solve_chain()
@@ -88,7 +88,7 @@ class Nodo():
             ret = self.operate_Q()
         return ret
     def box_leaf(self):
-        if not self.check_if_all_children_have_same_precedence(self.precedence):
+        if not self.check_all_children_have_same_precedence(self.precedence):
             if not self.children[0].leaf:
                 self.children[0].box_leaf()
                 return
@@ -121,13 +121,13 @@ class Nodo():
             return ret
         else:
             return NodoNumero(num, domain='Q')
-    def check_if_all_children_have_same_precedence(self, prec):
+    def check_all_children_have_same_precedence(self, prec):
         #I nodi foglia vanno bene
         if self.precedence != prec and self.leaf == False:
             return False
         ret = True
         for c in self.children:
-            ret = ret and c.check_if_all_children_have_same_precedence(prec)
+            ret = ret and c.check_all_children_have_same_precedence(prec)
         return ret
     def __repr__(self):
         return f"{self.get_annotated()}, {[n for n in self.children]}"
@@ -319,16 +319,25 @@ class NodoPotenza(Nodo):
             exp = Nodo.reduce_frac(
                 self.children[1].children[0].value,
                 self.children[1].children[1].value)
-            if exp.get_type() == "Frazione":
-                raise exceptions.DomainException("Frazioni all'esponente non supportate!")
             # Per come funziona il codice non dovrebbe essere mai il caso
-            else:
-                self.children[1] = exp
+            self.children[1] = exp
+            if exp.get_type() == "Frazione":
+                self.children[1].value = self.children[1].operate()
         if self.children[0].get_type() == "Frazione":
-            self.children[0].children[0].value **= self.children[1].value
-            self.children[0].children[1].value **= self.children[1].value
-            return self.children[0]
-        return NodoNumero(self.children[0].value ** self.children[1].value, id=self.id)
+            num = self.children[0].children[0].value ** self.children[1].value
+            den = self.children[0].children[1].value ** self.children[1].value
+            if int(num) != num or int(den) != den:
+                raise exceptions.DomainException("Frazioni all'esponente non supportata!")
+            self.children[0].children[0].value = int(num)
+            self.children[0].children[1].value = int(den)
+            ret = self.children[0]
+        else:
+            value = self.children[0].value ** self.children[1].value
+            if int(value) != value:
+                print(value)
+                raise exceptions.DomainException("Frazioni all'esponente non supportata!")
+            ret = NodoNumero(value, id=self.id)
+        return  ret
     def get_latex_main(self):
         exp = self.children[1].get_latex()
         return f"{self.children[0].get_latex()} ^ {{{exp}}}"
