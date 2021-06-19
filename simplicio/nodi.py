@@ -315,29 +315,46 @@ class NodoPotenza(Nodo):
     def operate(self):
         return self.children[0].value ** self.children[1].value
     def operate_Q(self):
+        # L'esponente è una frazione. Lo valuto passando attraverso un reale.
+        # Rischio di perdere in precisione, ma semplifica le operazioni
         if self.children[1].get_type() == "Frazione":
             exp = Nodo.reduce_frac(
                 self.children[1].children[0].value,
                 self.children[1].children[1].value)
-            # Per come funziona il codice non dovrebbe essere mai il caso
             self.children[1] = exp
             if exp.get_type() == "Frazione":
                 self.children[1].value = self.children[1].operate()
+        # Controllo se il denominatore è una frazione, e lo elevo.
         if self.children[0].get_type() == "Frazione":
-            num = self.children[0].children[0].value ** self.children[1].value
-            den = self.children[0].children[1].value ** self.children[1].value
-            if int(num) != num or int(den) != den:
-                raise exceptions.DomainException("Frazioni all'esponente non supportata!")
-            self.children[0].children[0].value = int(num)
-            self.children[0].children[1].value = int(den)
-            ret = self.children[0]
+            ret = NodoPotenza.raise_frac_at_pow(self.children[0], self.children[1].value)
+        # Se la base è un numero intero, ma l'esponente è negativo, prima la
+        # trasformo in frazione, poi opero (per evitare problemi con i reali).
+        elif self.children[1].value < 0:
+            ret = NodoPotenza.raise_frac_at_pow(
+                NodoFrazione(children=[self.children[0], NodoNumero(1)],
+                domain='Q'),
+                self.children[1].value)
+        # Base intero, esponente positivo
         else:
             value = self.children[0].value ** self.children[1].value
             if int(value) != value:
-                print(value)
                 raise exceptions.DomainException("Frazioni all'esponente non supportata!")
             ret = NodoNumero(value, id=self.id)
         return  ret
+    def raise_frac_at_pow(frac, exp):
+        if exp < 0:
+            tmp = frac.children[0]
+            frac.children[0] = frac.children[1]
+            frac.children[1] = tmp
+            exp *= -1
+        num = frac.children[0].value ** exp
+        den = frac.children[1].value ** exp
+        if int(num) != num or int(den) != den:
+            raise exceptions.DomainException("Frazione all'esponente non supportata!")
+        frac.children[0].value = int(num)
+        frac.children[1].value = int(den)
+        return frac
+
     def get_latex_main(self):
         exp = self.children[1].get_latex()
         return f"{self.children[0].get_latex()} ^ {{{exp}}}"
