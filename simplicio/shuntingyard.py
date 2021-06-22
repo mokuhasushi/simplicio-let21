@@ -24,7 +24,12 @@ nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
     '{':nodi.NodoParentesiGraffe}
 
 # Funzione di utilità per controllare la precedenza .
+# Problema: accettare l'uguaglianza fa in modo di avere l'associatività a sinistra
+# per le operazioni. Tuttavia questo genera problemi per i segni unari multipli,
+# in quanto non hanno un operando a sinistra
+# Esempio ---3 darebbe problemi
 def gte(op1, op2):
+    if op1 in operatori_unari and op2 in operatori_unari: return False
     return precedenze_operatori[op1] >= precedenze_operatori[op2]
 
 # Funzione principale da chiamare
