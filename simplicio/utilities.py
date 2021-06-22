@@ -5,8 +5,6 @@ from liblet import Tree
 import math
 import nodi
 
-nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
-    '{':nodi.NodoParentesiGraffe}
 
 class Stack():
     def __init__(self, iterable=None):

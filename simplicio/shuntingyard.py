@@ -1,6 +1,6 @@
 # Il riferimento per questa implementazione è:
 # https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
-from utilities import Stack, nodi_parentesi
+import utilities
 from exceptions import ParseException, EmptyStringException
 import nodi
 operatori_binari = {'+', '-', '*', ':', '/', '^'}
@@ -20,10 +20,12 @@ operatori_e_nodi = {
     '*':nodi.NodoMoltiplicazione, ':':nodi.NodoDivisione, '/':nodi.NodoFrazione,
     '^':nodi.NodoPotenza, '~':nodi.NodoMenoUnario
 }
+nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
+    '{':nodi.NodoParentesiGraffe}
 
 # Funzione di utilità per controllare la precedenza .
-def gt(op1, op2):
-    return precedenze_operatori[op1] > precedenze_operatori[op2]
+def gte(op1, op2):
+    return precedenze_operatori[op1] >= precedenze_operatori[op2]
 
 # Funzione principale da chiamare
 def parse_expr(expr, domain='R'):
@@ -31,14 +33,14 @@ def parse_expr(expr, domain='R'):
         raise EmptyStringException()
     stripped_expr = "".join(expr.split())
     stripped_expr += '#'
-    return parse(stripped_expr, domain)
+    return parse(stripped_expr, domain)#, debug
 
 def parse(expr, domain='R'):
-    operatori = Stack()
-    operandi = Stack()
+    operatori = utilities.Stack()
+    operandi = utilities.Stack()
     # x è il simbolo 'sentinella', come descritto nella referenza
     operatori.push('x')
-    expr_stacked = Stack(expr[::-1])
+    expr_stacked = utilities.Stack(expr[::-1])
     e(operatori, operandi, expr_stacked, domain)
     # Controllo se il parsing è terminato correttamente
     # TODO: Serve?
@@ -122,13 +124,15 @@ def popOp(operatori, operandi, domain):
         operandi.push(mkNode(operatori.pop(), t0, t1, domain))
     else:
         operandi.push(mkNode(operatori.pop(), operandi.pop(), domain=domain))
+    # debug.append(utilities.nodo2tree(operandi.peek()))
     return operatori, operandi
 
+# debug = []
 # Push di un operatore. Prima però bisogna costruire un albero con tutti gli
 # operatori di precedenza maggiore, per ottenere un albero ordinato in maniera
 # corretta. Si può dire che questo è il cuore dell'algoritmo (?)(!)
 def pushOp(op, operatori, operandi, domain):
-    while gt(operatori.peek(), op):
+    while gte(operatori.peek(), op):
         popOp(operatori, operandi, domain)
     operatori.push(op)
     return operatori, operandi
