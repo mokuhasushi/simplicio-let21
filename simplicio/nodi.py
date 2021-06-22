@@ -277,9 +277,9 @@ class NodoDivisione(Nodo):
     def operate(self):
         return self.children[0].value / self.children[1].value
     def operate_N(self):
-        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
+        return NodoNumero(self.children[0].value // self.children[1].value, id=self.id)
     def operate_Z(self):
-        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
+        return NodoNumero(self.children[0].value // self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * d2
