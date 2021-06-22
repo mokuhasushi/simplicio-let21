@@ -19,6 +19,8 @@ caso_simbolo_non_riconosciuto = "13 * 4 + (ciao - 3)"
 caso_lungo = "-19 + 4 * 45 / {12^[3+60/6:5] - 7/4 + 3 * (13 - 5 * -2^3)} * 22 / \
     143 - [13^2/45*3+3/(7+3^2)] : 3 - 1 + {12^(3+4)/12 + [5 - 3*4 + -(4^(9/3))]}\
     + 4 * (3+7^2)/{45 + 1 * 4 - [7/3 : 2 + 4 * (5 ^ 3 - 14) + 3] - 11^2}#"
+casi_N_ok = ["15 * 3 + 2 : 2", "15 - 4 - (3*3)", "1 * 4 - 8 + 5 - 2 + 3", "2^3", "4 / (2 * 2)"]
+casi_N_non_ok = ["-2", "4 - 8", "2^(-1)", "2^(1-2)", "3/4", "3 : 4"]
 def test_prova():
     smp.string2latex(test_expr)
     assert True
@@ -75,6 +77,17 @@ def test_potenze():
 def test_frazione_all_esponente():
     with pytest.raises(exc.DomainException):
         smp.string2latex(caso_potenza_frazione_esponente, 'Q')
+
+def test_N_ok():
+    for t in casi_N_ok:
+        smp.string2latex(t, 'N')
+    assert True
+
+def test_N_non_ok():
+    for t in casi_N_non_ok:
+        with pytest.raises(exc.DomainException):
+            smp.string2latex(t, 'N')
+    assert True
 
 #caso_lungo = "-19 + 4 * 45 / {12^[3+60/6:5] - 7/4 + 3 * (13 - 5 * -2^3)} * 22 / \
     # 143 - [13^2/45*3+3/(7+3^2)] : 3 - 1 + {12^(3+4)/12 + [5 - 3*4 + -(4^(9/3))]}-\
