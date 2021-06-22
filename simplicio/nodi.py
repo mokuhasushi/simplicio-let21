@@ -69,8 +69,20 @@ class Nodo():
             self.children[1] = self.children[1].solve_step()
             return self
         # Ogni figlio del nodo è una foglia, controllo il dominio e risolvo
-        if self.domain != 'Q':
+        if self.domain == 'R':
             ret = NodoNumero(self.operate(), self.id)
+        elif self.domain == 'N':
+            ret = self.operate_N()
+            # Questo controllo viene eseguito qui per via della risoluzione a catena
+            if ret.value < 0:
+                print(self)
+                raise exceptions.DomainException("Valori negativi non ammessi in N!")
+            if int(ret.value) != ret.value:
+                raise exceptions.DomainException("Solo numeri interi in N!")
+        elif self.domain == 'Z':
+            ret = self.operate_Z()
+            if int(ret.value) != ret.value:
+                raise exceptions.DomainException("Solo numeri interi in Z!")
         else:
             ret = self.operate_Q()
         ret.boxed = True
@@ -82,8 +94,12 @@ class Nodo():
         self.children[0] = self.children[0].solve_chain()
         if len(self.children) > 1:
             self.children[1] = self.children[1].solve_chain()
-        if self.domain != 'Q':
+        if self.domain == 'R':
             ret = NodoNumero(self.operate(), self.id)
+        elif self.domain == 'N':
+            ret = self.operate_N()
+        elif self.domain == 'Z':
+            ret = self.operate_Z()
         else:
             ret = self.operate_Q()
         return ret
@@ -100,6 +116,10 @@ class Nodo():
         return
 
     def operate(self):
+        pass
+    def operate_N(self):
+        pass
+    def operate_Z(self):
         pass
     def operate_Q(self):
         pass
@@ -140,6 +160,10 @@ class NodoParentesiTonde(Nodo):
         return "ParentesiTonde"
     def operate(self):
         return self.children[0].value
+    def operate_N(self):
+        return self.children[0]
+    def operate_Z(self):
+        return self.children[0]
     def operate_Q(self):
         return self.children[0]
     def get_latex_main(self):
@@ -153,6 +177,10 @@ class NodoParentesiQuadre(Nodo):
         return "ParentesiQuadre"
     def operate(self):
         return self.children[0].value
+    def operate_N(self):
+        return self.children[0]
+    def operate_Z(self):
+        return self.children[0]
     def operate_Q(self):
         return self.children[0]
     def get_latex_main(self):
@@ -165,6 +193,10 @@ class NodoParentesiGraffe(Nodo):
         return "ParentesiGraffe"
     def operate(self):
         return self.children[0].value
+    def operate_N(self):
+        return self.children[0]
+    def operate_Z(self):
+        return self.children[0]
     def operate_Q(self):
         return self.children[0]
     def get_latex_main(self):
@@ -178,6 +210,10 @@ class NodoAddizione(Nodo):
         return "Addizione"
     def operate(self):
         return self.children[0].value + self.children[1].value
+    def operate_N(self):
+        return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
+    def operate_Z(self):
+        return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
@@ -196,6 +232,10 @@ class NodoSottrazione(Nodo):
         return "Sottrazione"
     def operate(self):
         return self.children[0].value - self.children[1].value
+    def operate_N(self):
+        return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
+    def operate_Z(self):
+        return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
@@ -214,6 +254,10 @@ class NodoMoltiplicazione(Nodo):
         return "Moltiplicazione"
     def operate(self):
         return self.children[0].value * self.children[1].value
+    def operate_N(self):
+        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
+    def operate_Z(self):
+        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * n2
@@ -232,6 +276,10 @@ class NodoDivisione(Nodo):
         return "Divisione"
     def operate(self):
         return self.children[0].value / self.children[1].value
+    def operate_N(self):
+        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
+    def operate_Z(self):
+        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * d2
@@ -250,6 +298,10 @@ class NodoMenoUnario(Nodo):
         return "MenoUnario"
     def operate(self):
         return -self.children[0].value
+    def operate_N(self):
+        raise exceptions.DomainException("Numeri relativi non ammessi in N!")
+    def operate_Z(self):
+        return NodoNumero(-self.children[0].value, id=self.id)
     def operate_Q(self):
         if self.children[0].get_type() == "Numero":
             self.children[0].value *= -1
@@ -274,6 +326,10 @@ class NodoFrazione(Nodo):
         return "Frazione"
     def operate(self):
         return self.children[0].value / self.children[1].value
+    def operate_N(self):
+        raise exceptions.DomainException("Numeri frazionari non ammessi in N!")
+    def operate_Z(self):
+        raise exceptions.DomainException("Numeri frazionari non ammessi in Z!")
     def operate_Q(self):
         num, den = self.children[0], self.children[1]
         if num.get_type() == "Frazione" and den.get_type() == "Frazione":
@@ -314,6 +370,10 @@ class NodoPotenza(Nodo):
         return "Potenza"
     def operate(self):
         return self.children[0].value ** self.children[1].value
+    def operate_N(self):
+        return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
+    def operate_Z(self):
+        return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
     def operate_Q(self):
         # L'esponente è una frazione. Lo valuto passando attraverso un reale.
         # Rischio di perdere in precisione, ma semplifica le operazioni
