@@ -424,7 +424,7 @@ class NodoPotenza(Nodo):
 
     def get_latex_main(self):
         exp = self.children[1].get_latex()
-        return f"{self.children[0].get_latex()} ^ {{{exp}}}"
+        return f"{{{self.children[0].get_latex()}}} ^ {{{exp}}}"
 
 class NodoNumero(Nodo):
     def __init__(self, value, id=-1, domain='R'):
