@@ -1,5 +1,13 @@
 # Il riferimento per questa implementazione è:
 # https://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
+# La grammatica è stata però modificata per consentire la notazione scientifica:
+# E --> E {B P}*
+# P --> V | "(" E ")" | U P
+# B --> "+" | "-" | "*" | ":" | "/" | "^"
+# U --> "-" | "~"
+# V --> [0-9]+(\.[0-9]*)?(e[0-9]+)?
+# Dove V è stato espresso per comodità con una regex
+
 import utilities
 from exceptions import ParseException, EmptyStringException
 import nodi
