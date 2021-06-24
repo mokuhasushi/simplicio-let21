@@ -26,7 +26,7 @@ nodi_parentesi = {'(': nodi.NodoParentesiTonde, '[': nodi.NodoParentesiQuadre,
 # Funzione di utilità per controllare la precedenza .
 # Ricontrollando la referenza, era specificato che per operatori binari con
 # associatività a sinistra è opportuno confrontare usando >=
-def gte(op1, op2):
+def gt(op1, op2):
     if op1 in {"*", ":", "+", "-"}:
         return precedenze_operatori[op1] >= precedenze_operatori[op2]
     else:
@@ -70,16 +70,13 @@ def e(operatori, operandi, expr, domain='R'):
         popOp(operatori, operandi, domain)
     return operatori, operandi, expr
 
-#Corrisponde alla regola della grammatica di riferimento:
-# P --> v | "(" E ")" | U P
+#Corrisponde alla regola della grammatica:
+# P --> V | "(" E ")" | U P
 def p(operatori, operandi, expr, domain='R'):
     next_token = expr.peek()
     # caso valore numerico --> v
     if next_token.isdigit():
-        v = expr.pop()
-        while expr.peek().isdigit():
-            v += expr.pop()
-        operandi.push(mkLeaf(v, domain))
+        v(operandi, expr, domain)
     # caso parentesi --> "(" E ")"
     elif next_token in parentesi.keys():
         # salvo il tipo di parentesi
@@ -111,9 +108,33 @@ def p(operatori, operandi, expr, domain='R'):
             operatori, operandi, expr)
     return operatori, operandi, expr
 
+def v(operandi, expr, domain='R'):
+    n = expr.pop()
+    e = '0'
+    while expr.peek().isdigit():
+        n += expr.pop()
+    if expr.peek() == '.':
+        n += '.'
+        expr.pop()
+        while expr.peek().isdigit():
+            n += expr.pop()
+    if expr.peek() in {'e', 'E'}:
+        expr.pop()
+        e = expr.pop()
+        while expr.peek().isdigit():
+            e += expr.pop()
+    operandi.push(mkLeaf(n, e, domain))
+
+
 # Le foglie sono i valori numerici dell'espressione
-def mkLeaf(num, domain):
-    return nodi.NodoNumero(int(num), domain=domain)
+def mkLeaf(num, e, domain):
+    if domain == 'R':
+        return nodi.NodoNumero(float(num)*10**float(e), domain=domain)
+    else:
+        n = float(num)*10**int(e)
+        if int(n) != n:
+            raise DomainException("Numeri con la virgola ammessi solo in R!")
+        return nodi.NodoNumero(int(n), domain=domain)
 # I nodi potrebbero essere unari o binari
 def mkNode(op, t0, t1=None, domain='N'):
     if t1 is None:
@@ -137,7 +158,7 @@ def popOp(operatori, operandi, domain):
 # operatori di precedenza maggiore, per ottenere un albero ordinato in maniera
 # corretta. Si può dire che questo è il cuore dell'algoritmo (?)(!)
 def pushOp(op, operatori, operandi, domain):
-    while gte(operatori.peek(), op):
+    while gt(operatori.peek(), op):
         popOp(operatori, operandi, domain)
     operatori.push(op)
     return operatori, operandi

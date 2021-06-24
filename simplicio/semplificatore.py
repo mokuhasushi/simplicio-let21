@@ -52,7 +52,6 @@ class Semplificatore():
         for tipo_parentesi in [self.nodes_type2node_id[self.tipi_nodi['tonde']],
                   self.nodes_type2node_id[self.tipi_nodi['quadre']],
                   self.nodes_type2node_id[self.tipi_nodi['graffe']]]:
-            prev = nodi.Nodo()
             for nodo_id in tipo_parentesi:
                 par, cur = self.trova_nodo(nodo_id)
                 cur.colore = "blue"

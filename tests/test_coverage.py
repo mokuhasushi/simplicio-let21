@@ -24,7 +24,7 @@ casi_N_non_ok = ["-2", "4 - 8", "2^(-1)", "2^(1-2)", "3/4", "3 : 4"]
 casi_Z_ok = ["15 * 3 + 2 : 2", "15 - 4 - (3*3)", "1 * 4 - 8 + 5 - 2 + 3", "2^3", "4 / (2 * 2)",
     "-2", "4 - 8"]
 casi_Z_non_ok = [ "2^(-1)", "2^(1-2)", "3/4", "3 : 4"]
-
+caso_notazione_scientifica = "4 - (8.2e1 + 5 - 2 * 3)"
 def test_prova():
     smp.string2latex(test_expr)
     assert True
@@ -103,6 +103,10 @@ def test_Z_non_ok():
         with pytest.raises(exc.DomainException):
             smp.string2latex(t, 'Z')
     assert True
+def test_notazione_scientifica():
+    smp.string2latex(caso_notazione_scientifica, 'R')
+    assert True
+
 #caso_lungo = "-19 + 4 * 45 / {12^[3+60/6:5] - 7/4 + 3 * (13 - 5 * -2^3)} * 22 / \
     # 143 - [13^2/45*3+3/(7+3^2)] : 3 - 1 + {12^(3+4)/12 + [5 - 3*4 + -(4^(9/3))]}-\
     # 143 - [13^2/45*3+3/(7+3^2)] : 3 - 1 + {12^(3+4)/12 + [5 - 3*4 + -(4^(9/3))]}+\
