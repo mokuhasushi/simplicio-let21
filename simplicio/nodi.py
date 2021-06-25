@@ -317,7 +317,7 @@ class NodoMenoUnario(Nodo):
         return f"- {self.children[0].get_latex()}"
 
 class NodoFrazione(Nodo):
-    def __init__(self, value=None, children=None, domain='R'):
+    def __init__(self, value=None, children=None, domain='Q'):
         super().__init__(value, children, domain)
         self.precedence = 4
         if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
@@ -326,6 +326,14 @@ class NodoFrazione(Nodo):
             self.children[0] = self.children[0].children[0]
         if self.children[1].get_type() in tipo_parentesi:
             self.children[1] = self.children[1].children[0]
+        # Se la frazione è già ridotta, il nodo è una foglia.
+        if self.children[0].get_type() == "Numero" and self.children[1].get_type() == "Numero"\
+            and domain == 'Q':
+            num, den = self.children[0].value, self.children[1].value
+            gcd = math.gcd(num, den)
+            if gcd == 1:
+                self.leaf = True
+
     def get_type(self):
         return "Frazione"
     def operate_R(self):
