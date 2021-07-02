@@ -148,13 +148,15 @@ def v(operandi, expr, domain):
 def mkLeaf(num, e, domain):
     if domain == 'R':
         return nodi.NodoNumero(float(num)*10**float(e), domain=domain)
+    # E' stato scelto di NON implementare un convertitore
+    # numero decimale -> numero frazionario
     else:
         n = float(num)*10**int(e)
         if int(n) != n:
             raise DomainException("Numeri con la virgola ammessi solo in R!")
         return nodi.NodoNumero(int(n), domain=domain)
 # I nodi potrebbero essere unari o binari
-def mkNode(op, t0, t1=None, domain='N'):
+def mkNode(op, t0, t1=None, domain='R'):
     if t1 is None:
         return operatori_e_nodi[op](0,[t0], domain=domain)
     else:
@@ -168,10 +170,8 @@ def popOp(operatori, operandi, domain):
         operandi.push(mkNode(operatori.pop(), t0, t1, domain))
     else:
         operandi.push(mkNode(operatori.pop(), operandi.pop(), domain=domain))
-    # debug.append(utilities.nodo2tree(operandi.peek()))
     return operatori, operandi
 
-# debug = []
 # Push di un operatore. Prima però bisogna costruire un albero con tutti gli
 # operatori di precedenza maggiore, per ottenere un albero ordinato in maniera
 # corretta. Si può dire che questo è il cuore dell'algoritmo (?)(!)
