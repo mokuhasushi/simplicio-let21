@@ -4,6 +4,7 @@ import utilities
 
 tipo_parentesi = {"ParentesiTonde", "ParentesiQuadre", "ParentesiGraffe"}
 class Nodo():
+    # Costruttore. Assegna i valori di default a tutti i campi se non specificati
     def __init__(self, value=None, children=None, domain='R'):
         self.id = -1
         self.value = value
@@ -16,32 +17,42 @@ class Nodo():
         self.clear_after_read_flag = False
         self.domain = domain
         self.precedence = -1
+    # In realtà mai usato
     def add_children(self, nodo):
         self.children.append(nodo)
+    # Ritorna una stringa che esprime il tipo del nodo
     def get_type(self):
         return "Nodo"
+    # Ritorna il nodo come dizionario, in cui compaiono solo i campi più rilevanti
     def get_annotated(self):
         d = {'type':self.get_type(), 'id':self.id}
         if self.colore != "": d['colore'] = self.colore
         return d
+    # Ritorna la rappresentazione in codice latex. Qui viene definita solo la
+    # struttura generale, nei vari nodi si possono trovare le implementazioni
+    # specifiche nel metodo get_latex_main
     def get_latex(self):
         main_text = self.get_latex_main()
         if self.boxed:
             main_text = "\\boxed{" + main_text + "}"
         if self.colore != "":
             main_text = "\\color{" + self.colore + "} {" + main_text + "}"
+        # Flag usata per rimuovere automaticamente il boxing verde dopo una volta
         if self.clear_after_read_flag:
             self.colore = ""
             self.boxed = False
             self.clear_after_read_flag = False
         return main_text
+    # metodo da ridefinire per ogni nodo
     def get_latex_main(self):
         return ""
+    # numera il nodo e tutti i figli in modo che i figli sx abbiano id < del padre
+    # i figli dx id >
     def numera(self, n):
         size = len(self.children)
         if size == 0:
             self.id = n
-            return n+1
+            n += 1
         elif size == 1:
             n = self.children[0].numera(n)
             self.id = n
@@ -51,21 +62,23 @@ class Nodo():
             self.id = n
             n += 1
             n = self.children[1].numera(n)
-        # Questo caso è pericolo, rovina la ricerca binaria.
-        # Servirà solo se si vorrà unire vari nodi es 3 + 3 + 3 + 1 ...
         else:
             raise NodeException("Albero non binario!")
         return n
+    # metodo che risolve uno step del sottoalbero che ha il nodo come radice
     def solve_step(self):
         #risoluzione in un passaggio di tutte le operazioni simili
         if self.check_all_children_have_same_precedence(self.precedence):
             self.children[0] = self.children[0].solve_chain()
             if len(self.children) > 1:
                 self.children[1] = self.children[1].solve_chain()
+        # altrimenti, se il primo figlio non è una foglia e se ha precedenza >=
+        # dell'eventuale secondo figlio, lo sostituisco con la sua versione risolta
         elif not self.children[0].leaf and\
                 (len(self.children) == 1 or self.children[0].precedence >= self.children[1].precedence):
             self.children[0] = self.children[0].solve_step()
             return self
+        # altrimenti se c'è un secondo figlio lo risolvo
         elif len(self.children) > 1 and not self.children[1].leaf:
             self.children[1] = self.children[1].solve_step()
             return self
@@ -89,6 +102,8 @@ class Nodo():
         ret.colore = "green"
         ret.clear_after_read_flag = True
         return ret
+    # Assumendo che tutti i nodi abbiano lo stesso ordine di precedenza, li risolvo
+    # in una volta sola
     def solve_chain(self):
         if self.leaf: return self
         self.children[0] = self.children[0].solve_chain()
@@ -103,6 +118,8 @@ class Nodo():
         else:
             ret = self.operate_Q()
         return ret
+    # Riquadro in rosso il prossimo nodo da risolvere, secondo la stessa logica
+    # di solve step
     def box_leaf(self):
         if not self.check_all_children_have_same_precedence(self.precedence):
             if not self.children[0].leaf and\
@@ -115,7 +132,8 @@ class Nodo():
         self.boxed = True
         self.colore = "red"
         return
-
+    # Implementazioni delle operazione per i vari domini. Per come è definito
+    # l'algoritmo si è certi che i figli sono foglie, quando viene chiamato
     def operate_R(self):
         pass
     def operate_N(self):
@@ -124,13 +142,18 @@ class Nodo():
         pass
     def operate_Q(self):
         pass
-    def get_num_and_den(self):
-        raise exceptions.NodeException("Errore, get num and den chiamato su un \
-        nodo operazione!", nodo=self)
+    # Conviene definire questo metodo una volta sola. Ciò però richiede anche
+    # get_num_and_den. Viene usato per ottenere numeratore e denominatore dei figli
     def get_children_nums_and_dens(self):
         n1, d1 = self.children[0].get_num_and_den()
         n2, d2 = self.children[1].get_num_and_den()
         return n1, d1, n2, d2
+    # template
+    def get_num_and_den(self):
+        raise exceptions.NodeException("Errore, get num and den chiamato su un \
+        nodo operazione!", nodo=self)
+    # Riduzione di una frazione, prende due interi e opzionalmente un intero id
+    # e ritorna un nodo, frazione o numero
     def reduce_frac(num, den, id=-1):
         gcd = math.gcd(num, den)
         if gcd > 1:
@@ -138,10 +161,10 @@ class Nodo():
             den //= gcd
         if den != 1:
             ret = NodoFrazione(children=[NodoNumero(num), NodoNumero(den)], domain='Q')
-            ret.leaf = True
             return ret
         else:
             return NodoNumero(num, domain='Q')
+    # Controllo ricorsivamente se tutti i figli hanno la stessa precedenza del padre
     def check_all_children_have_same_precedence(self, prec):
         #I nodi foglia vanno bene
         if self.precedence != prec and self.leaf == False:
@@ -150,8 +173,10 @@ class Nodo():
         for c in self.children:
             ret = ret and c.check_all_children_have_same_precedence(prec)
         return ret
+    # Si spiega da solo
     def is_integer_division(x, y):
         return x / y == x // y
+    # Rappresentazione del nodo, principalmente per debug
     def __repr__(self):
         return f"{self.get_annotated()}, {[n for n in self.children]}"
 
@@ -322,7 +347,8 @@ class NodoFrazione(Nodo):
     def __init__(self, value=None, children=None, domain='Q'):
         super().__init__(value, children, domain)
         self.precedence = 4
-        if(len(self.children) < 2): return #colpa di tipo nodi in Semplificatore
+        # Controllo in caso il nodo non sia inizializzato correttamente
+        if(len(self.children) < 2): return
         # rimuovo le parentesi da num e den
         if self.children[0].get_type() in tipo_parentesi:
             self.children[0] = self.children[0].children[0]
@@ -399,9 +425,9 @@ class NodoPotenza(Nodo):
             exp = Nodo.reduce_frac(
                 self.children[1].children[0].value,
                 self.children[1].children[1].value)
-            self.children[1] = exp
             if exp.get_type() == "Frazione":
-                self.children[1].value = self.children[1].operate_R()
+                exp.value = exp.operate_R()
+            self.children[1] = exp
         # Controllo se il denominatore è una frazione, e lo elevo.
         if self.children[0].get_type() == "Frazione":
             ret = NodoPotenza.raise_frac_at_pow(self.children[0], self.children[1].value)
@@ -412,13 +438,14 @@ class NodoPotenza(Nodo):
                 NodoFrazione(children=[self.children[0], NodoNumero(1)],
                 domain='Q'),
                 self.children[1].value)
-        # Base intero, esponente positivo
+        # Base intera, esponente positivo
         else:
             value = self.children[0].value ** self.children[1].value
             if int(value) != value:
                 raise exceptions.DomainException("Frazioni all'esponente non supportata!")
             ret = NodoNumero(value, id=self.id)
-        return  ret
+        return ret
+    # Si rischia qualcosa con la precisione dei float, ma il procedimento è chiaro
     def raise_frac_at_pow(frac, exp):
         if exp < 0:
             tmp = frac.children[0]
