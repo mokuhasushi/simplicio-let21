@@ -23,8 +23,8 @@ class Stack():
     def __repr__(self):
         return str(self._stack)
 
-def nodo2tree(root):
-    children = [nodo2tree(n) for n in root.children]
+def node2tree(root):
+    children = [node2tree(n) for n in root.children]
     return Tree(root.get_annotated(), children)
 
 def lcm(a, b):
