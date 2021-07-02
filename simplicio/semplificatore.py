@@ -20,7 +20,11 @@ class Semplificatore():
         # dizionario: tipo -> nodi di quel tipo
         self.root = root
         self.root.numera(0)
-        self.node_types2node_id = Semplificatore.get_nodes_type(self.root)
+        node_types2node_id = Semplificatore.get_nodes_type(self.root)
+        self.parenthesis_ordered = []
+        self.parenthesis_ordered += (node_types2node_id[self.node_types['tonde']])
+        self.parenthesis_ordered += (node_types2node_id[self.node_types['quadre']])
+        self.parenthesis_ordered += (node_types2node_id[self.node_types['graffe']])
     # Percorre ricorsivamente l'albero e salva i nodi per tipo
     # Per risolvere la parentesizzazione libera è stato sufficiente recuperare
     # i nodi con una visita in post ordine
@@ -49,33 +53,30 @@ class Semplificatore():
     def solve(self):
         texts = ["&"+self.root.get_latex()]
         tree = self.root
-        for tipo_parentesi in [self.node_types2node_id[self.node_types['tonde']],
-                  self.node_types2node_id[self.node_types['quadre']],
-                  self.node_types2node_id[self.node_types['graffe']]]:
-            for nodo_id in tipo_parentesi:
-                par, cur = self.trova_nodo(nodo_id)
-                cur.colore = "blue"
-                # texts.append(self.root.get_latex())
-                solving = cur.children[0]
-                while not solving.leaf:
-                    solving.box_leaf()
-                    texts.append(self.root.get_latex())
-                    solving = solving.solve_step()
-                    # Se il nodo che stiamo risolvendo è una foglia, ho finito
-                    if solving.leaf:
-                        if par.children[0].id == cur.id:
-                            par.children[0] = solving
-                        elif len(par.children) > 1 and par.children[1].id == cur.id:
-                            par.children[1] = solving
-                        # caso particolare, ottenuto mettendo tutta l'espressione
-                        # dentro le parentesi. il metodo trova nodo ritorna
-                        # par = cur = root. I test sui figli ovviamente falliscono
-                        elif par.id == cur.id:
-                            par = solving
-                        else:
-                            raise Exception("Non dovrebbe mai succedere... Semplificatore")
+        for nodo_id in self.parenthesis_ordered:
+            par, cur = self.trova_nodo(nodo_id)
+            cur.colore = "blue"
+            # texts.append(self.root.get_latex())
+            solving = cur.children[0]
+            while not solving.leaf:
+                solving.box_leaf()
+                texts.append(self.root.get_latex())
+                solving = solving.solve_step()
+                # Se il nodo che stiamo risolvendo è una foglia, ho finito
+                if solving.leaf:
+                    if par.children[0].id == cur.id:
+                        par.children[0] = solving
+                    elif len(par.children) > 1 and par.children[1].id == cur.id:
+                        par.children[1] = solving
+                    # caso particolare, ottenuto mettendo tutta l'espressione
+                    # dentro le parentesi. il metodo trova nodo ritorna
+                    # par = cur = root. I test sui figli ovviamente falliscono
+                    elif par.id == cur.id:
+                        par = solving
+                    else:
+                        raise Exception("Non dovrebbe mai succedere... Semplificatore")
 
-                cur.colore = ""
+            cur.colore = ""
         solving = self.root
         while not solving.leaf:
             solving.box_leaf()

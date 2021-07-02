@@ -62,7 +62,8 @@ class Nodo():
             self.children[0] = self.children[0].solve_chain()
             if len(self.children) > 1:
                 self.children[1] = self.children[1].solve_chain()
-        elif not self.children[0].leaf:
+        elif not self.children[0].leaf and\
+                (len(self.children) == 1 or self.children[0].precedence >= self.children[1].precedence):
             self.children[0] = self.children[0].solve_step()
             return self
         elif len(self.children) > 1 and not self.children[1].leaf:
@@ -104,7 +105,8 @@ class Nodo():
         return ret
     def box_leaf(self):
         if not self.check_all_children_have_same_precedence(self.precedence):
-            if not self.children[0].leaf:
+            if not self.children[0].leaf and\
+                    (len(self.children) == 1 or self.children[0].precedence >= self.children[1].precedence):
                 self.children[0].box_leaf()
                 return
             elif len(self.children) > 1 and not self.children[1].leaf:
@@ -333,6 +335,7 @@ class NodoFrazione(Nodo):
             gcd = math.gcd(num, den)
             if gcd == 1:
                 self.leaf = True
+                self.precedence = -1
 
     def get_type(self):
         return "Frazione"
