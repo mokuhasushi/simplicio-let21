@@ -2,10 +2,7 @@ import nodi
 import exceptions
 
 class Semplificatore():
-    # Non sono sicuro di questo approccio. Il vantaggio è che se dovessi
-    # cambiare la stringa di rappresentazione dei tipi qui non dovrei cambiare
-    # nulla, ma perchè dovrei farlo?
-    tipi_nodi = {
+    node_types = {
         "nodo"  : nodi.Nodo().get_type(),
         "tonde" : nodi.NodoParentesiTonde().get_type(),
         "quadre": nodi.NodoParentesiQuadre().get_type(),
@@ -21,37 +18,40 @@ class Semplificatore():
     }
     def __init__(self, root):
         # dizionario: tipo -> nodi di quel tipo
-        self.nodes_type2node_id = {
-            self.tipi_nodi['nodo'] : [],
-            self.tipi_nodi['tonde'] : [],
-            self.tipi_nodi['quadre'] : [],
-            self.tipi_nodi['graffe'] : [],
-            self.tipi_nodi['add'] : [],
-            self.tipi_nodi['sub'] : [],
-            self.tipi_nodi['mul'] : [],
-            self.tipi_nodi['div'] : [],
-            self.tipi_nodi['meno'] : [],
-            self.tipi_nodi['frac'] : [],
-            self.tipi_nodi['pow'] : [],
-            self.tipi_nodi['value'] : []
-        }
         self.root = root
         self.root.numera(0)
-        self.get_nodes_type(root)
+        self.node_types2node_id = Semplificatore.get_nodes_type(self.root)
     # Percorre ricorsivamente l'albero e salva i nodi per tipo
     # Per risolvere la parentesizzazione libera è stato sufficiente recuperare
     # i nodi con una visita in post ordine
-    def get_nodes_type(self, tree):
+    def get_nodes_type(tree):
+        nt2nid = {
+            Semplificatore.node_types['nodo'] : [],
+            Semplificatore.node_types['tonde'] : [],
+            Semplificatore.node_types['quadre'] : [],
+            Semplificatore.node_types['graffe'] : [],
+            Semplificatore.node_types['add'] : [],
+            Semplificatore.node_types['sub'] : [],
+            Semplificatore.node_types['mul'] : [],
+            Semplificatore.node_types['div'] : [],
+            Semplificatore.node_types['meno'] : [],
+            Semplificatore.node_types['frac'] : [],
+            Semplificatore.node_types['pow'] : [],
+            Semplificatore.node_types['value'] : []
+        }
+        return Semplificatore.get_nodes_type_rec(tree, nt2nid)
+    def get_nodes_type_rec(tree, nt2nid):
         for c in tree.children:
-            self.get_nodes_type(c)
-        self.nodes_type2node_id[tree.get_type()].append(tree.id)
+            Semplificatore.get_nodes_type_rec(c, nt2nid)
+        nt2nid[tree.get_type()].append(tree.id)
+        return nt2nid
     # risolve tutta l'equazione, a partire dalle parentesi
     def solve(self):
         texts = ["&"+self.root.get_latex()]
         tree = self.root
-        for tipo_parentesi in [self.nodes_type2node_id[self.tipi_nodi['tonde']],
-                  self.nodes_type2node_id[self.tipi_nodi['quadre']],
-                  self.nodes_type2node_id[self.tipi_nodi['graffe']]]:
+        for tipo_parentesi in [self.node_types2node_id[self.node_types['tonde']],
+                  self.node_types2node_id[self.node_types['quadre']],
+                  self.node_types2node_id[self.node_types['graffe']]]:
             for nodo_id in tipo_parentesi:
                 par, cur = self.trova_nodo(nodo_id)
                 cur.colore = "blue"
