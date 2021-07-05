@@ -40,6 +40,11 @@ def test_lungo():
     smp.string2latex(caso_lungo, 'Q')
     assert True
 
+# Tempo di esecuzione: +35 secondi (su macchina linux con processore i7 di 7ima gen)
+# def test_lungo_2():
+#     smp.string2latex(caso_lungo_2, 'Q')
+#     assert True
+
 def test_riassuntivo():
     smp.string2latex(caso_riassuntivo, 'Q')
     assert True
@@ -115,6 +120,54 @@ def test_notazione_scientifica_N_non_ok():
     with pytest.raises(exc.DomainException):
         smp.string2latex(caso_notazione_scientifica_non_ok_N, 'N')
     assert True
+# 15 + 1 prima linea, poi 15. 600 operazioni -> 35 sec.
+# Si mette in evidenza il fatto che il costo in termini di tempo dipende
+# non solo dalla lunghezza dell'input, ma anche dalle sue caratteristiche.
+# Questo poichè in questo caso (no parentesi, operazioni miste, peggiorabile con
+# più tipi di operazioni) emergono le limitazioni di andare a percorre i sottoalberi
+# alla ricerca del tipo dei nodi. Mi pare comunque che impiegare circa 5 secondi
+# per un input di 300 operazioni possa essere ragionevole in questo contesto.
+caso_lungo_2 = " 1 + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+    + 1 * 1  + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 \
+"
 
 #caso_lungo = "-19 + 4 * 45 / {12^[3+60/6:5] - 7/4 + 3 * (13 - 5 * -2^3)} * 22 / \
     # 143 - [13^2/45*3+3/(7+3^2)] : 3 - 1 + {12^(3+4)/12 + [5 - 3*4 + -(4^(9/3))]}-\
