@@ -42,6 +42,7 @@ Se si desidera visualizzare l'albero generato dal parser, si può usare la funzi
 ### Problemi noti
 
 Precedenza - su /
+NOTAZIONE SCIENTIFICA e-
 
 Rispetto alle specifiche richieste, il solo problema noto riguarda l'ordine di esecuzione delle operazioni. Infatti, benchè la computazione sia corretta, puù capitare che operazioni con un ordine di precedenza più basso vengano eseguite prima di altre con un ordine più alto. \
 Espressione di esempio: 1 + 2^3 + 12:3. In questo caso l'operazione 12:3 viene eseguita prima di 2^3\
