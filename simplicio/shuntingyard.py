@@ -5,12 +5,15 @@
 # P --> V | "(" E ")" | U P
 # B --> "+" | "-" | "*" | ":" | "/" | "^"
 # U --> "-" | "~"
-# V --> (([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(e[0-9]+)?
+# V --> (([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(e.[0-9]+)?
 
 # Dove V è stato espresso per comodità con una regex. Qui sotto una versione più
 # leggibile. Quella sopra è dovuta al caso accettato ".1", ovvero numero decimale
 # scritto partendo con un punto
 # V --> [0-9]+(\.[0-9]*)?(e[0-9]+)?
+# UNA NOTA IMPORTANTE: dopo la 'e|E' viene accettato qualsiasi carattere. Questo
+# permette di parsare esponenti negativi. Un controllo non richiede particolari
+# complicazioni, ma si presume un uso corretto (al momento). 
 
 import utilities
 from exceptions import ParseException, EmptyStringException, DomainException
@@ -22,7 +25,10 @@ operatori_unari = {'-', '~'}
 parentesi = {'(':')', '[':']', '{':'}'}
 
 # Precedenze degli operatori.
-precedenze_operatori = {'^' : 5, '/' : 4, '~' : 3,
+# E' stato cambiata la precedenza della frazione e del meno unario in quanto
+# altrimenti si generava un errore di parsing in espressioni del tipo
+# -1 / -1
+precedenze_operatori = {'^' : 5, '/' : 3, '~' : 4,
     '*' : 2, ':' : 2, '+' : 1, '-': 1, 'x' : 0}
 
 # Operatori e nodi. Per il momento sto aggiungendo molte cose, per vedere cosa funziona

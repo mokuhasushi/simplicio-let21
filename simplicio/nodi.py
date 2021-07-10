@@ -67,21 +67,22 @@ class Nodo():
         return n
     # metodo che risolve uno step del sottoalbero che ha il nodo come radice
     def solve_step(self):
+        ret_ids = []
         #risoluzione in un passaggio di tutte le operazioni simili
         if self.check_all_children_have_same_precedence(self.precedence):
-            self.children[0] = self.children[0].solve_chain()
+            self.children[0], ret_ids = self.children[0].solve_chain()
             if len(self.children) > 1:
-                self.children[1] = self.children[1].solve_chain()
+                self.children[1], ret_ids = self.children[1].solve_chain()
         # altrimenti, se il primo figlio non è una foglia e se ha precedenza >=
         # dell'eventuale secondo figlio, lo sostituisco con la sua versione risolta
         elif not self.children[0].leaf and\
                 (len(self.children) == 1 or self.children[0].precedence >= self.children[1].precedence):
-            self.children[0] = self.children[0].solve_step()
-            return self
+            self.children[0], ret_ids = self.children[0].solve_step()
+            return self, ret_ids
         # altrimenti se c'è un secondo figlio lo risolvo
         elif len(self.children) > 1 and not self.children[1].leaf:
-            self.children[1] = self.children[1].solve_step()
-            return self
+            self.children[1], ret_ids = self.children[1].solve_step()
+            return self, ret_ids
         # Ogni figlio del nodo è una foglia, controllo il dominio e risolvo
         if self.domain == 'R':
             ret = NodoNumero(self.operate_R(), self.id)
@@ -98,17 +99,22 @@ class Nodo():
                 raise exceptions.DomainException("Solo numeri interi in Z!")
         else:
             ret = self.operate_Q()
+        ret_ids += [self.id]
         ret.boxed = True
         ret.colore = "green"
         ret.clear_after_read_flag = True
-        return ret
+        return ret, ret_ids
     # Assumendo che tutti i nodi abbiano lo stesso ordine di precedenza, li risolvo
     # in una volta sola
     def solve_chain(self):
-        if self.leaf: return self
-        self.children[0] = self.children[0].solve_chain()
+        ## print("id solve chain: ",self.id)
+        ret_ids = [self.id]
+        if self.leaf: return self, ret_ids
+        self.children[0], ids = self.children[0].solve_chain()
+        ret_ids += ids
         if len(self.children) > 1:
-            self.children[1] = self.children[1].solve_chain()
+            self.children[1], ids = self.children[1].solve_chain()
+        ret_ids += ids
         if self.domain == 'R':
             ret = NodoNumero(self.operate_R(), self.id)
         elif self.domain == 'N':
@@ -117,7 +123,8 @@ class Nodo():
             ret = self.operate_Z()
         else:
             ret = self.operate_Q()
-        return ret
+        ## print("ret_ids: ", ret_ids)
+        return ret, ret_ids
     # Riquadro in rosso il prossimo nodo da risolvere, secondo la stessa logica
     # di solve step
     def box_leaf(self):
@@ -138,8 +145,10 @@ class Nodo():
         pass
     def operate_N(self):
         pass
+    # In tutti i casi, tranne che per il meno unario, l'esecuzione in Z è identica
+    # a quella in N. Il controllo viene eseguito sul valore ritornato
     def operate_Z(self):
-        pass
+        return self.operate_N()
     def operate_Q(self):
         pass
     # Conviene definire questo metodo una volta sola. Ciò però richiede anche
@@ -155,15 +164,20 @@ class Nodo():
     # Riduzione di una frazione, prende due interi e opzionalmente un intero id
     # e ritorna un nodo, frazione o numero
     def reduce_frac(num, den, id=-1):
+        # porto il meno al numeratore
+        if den < 0:
+            num *= -1
+            den *= -1
         gcd = math.gcd(num, den)
         if gcd > 1:
             num //= gcd
             den //= gcd
         if den != 1:
             ret = NodoFrazione(children=[NodoNumero(num), NodoNumero(den)], domain='Q')
+            ret.id = id
             return ret
         else:
-            return NodoNumero(num, domain='Q')
+            return NodoNumero(num, domain='Q', id=id)
     # Controllo ricorsivamente se tutti i figli hanno la stessa precedenza del padre
     def check_all_children_have_same_precedence(self, prec):
         #I nodi foglia vanno bene
@@ -172,61 +186,54 @@ class Nodo():
         ret = True
         for c in self.children:
             ret = ret and c.check_all_children_have_same_precedence(prec)
+            # migliora le prestazioni
+            if ret == False:
+                break
         return ret
     # Si spiega da solo
     def is_integer_division(x, y):
         return x / y == x // y
+    def is_frazione(self):
+        return False
     # Rappresentazione del nodo, principalmente per debug
     def __repr__(self):
         return f"{self.get_annotated()}, {[n for n in self.children]}"
 
+# le parentesi differiscono solo nella loro rappresentazione
+class NodoParentesi(Nodo):
+    def __init__(self, value=None, children=None, domain='R'):
+        super().__init__(value, children, domain)
+    def get_type(self):
+        return "Parentesi"
+    def operate_R(self):
+        return self.children[0].value
+    def operate_N(self):
+        return self.children[0]
+    def operate_Q(self):
+        return self.children[0]
 
-class NodoParentesiTonde(Nodo):
+class NodoParentesiTonde(NodoParentesi):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiTonde"
-    def operate_R(self):
-        return self.children[0].value
-    def operate_N(self):
-        return self.children[0]
-    def operate_Z(self):
-        return self.children[0]
-    def operate_Q(self):
-        return self.children[0]
     def get_latex_main(self):
         main_text = f"\\left( {self.children[0].get_latex()} \\right)"
         return main_text
 
-class NodoParentesiQuadre(Nodo):
+class NodoParentesiQuadre(NodoParentesi):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiQuadre"
-    def operate_R(self):
-        return self.children[0].value
-    def operate_N(self):
-        return self.children[0]
-    def operate_Z(self):
-        return self.children[0]
-    def operate_Q(self):
-        return self.children[0]
     def get_latex_main(self):
         return f"\\left[ {self.children[0].get_latex()} \\right]"
 
-class NodoParentesiGraffe(Nodo):
+class NodoParentesiGraffe(NodoParentesi):
     def __init__(self, value=None, children=None, domain='R'):
         super().__init__(value, children, domain)
     def get_type(self):
         return "ParentesiGraffe"
-    def operate_R(self):
-        return self.children[0].value
-    def operate_N(self):
-        return self.children[0]
-    def operate_Z(self):
-        return self.children[0]
-    def operate_Q(self):
-        return self.children[0]
     def get_latex_main(self):
         return "\\left\{" + f" {self.children[0].get_latex()} " + "\\right\}"
 
@@ -240,14 +247,11 @@ class NodoAddizione(Nodo):
         return self.children[0].value + self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
-    def operate_Z(self):
-        return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
         num = n1 * (den//d1) + n2 * (den//d2)
-        ret = Nodo.reduce_frac(num, den)
-        ret.id = self.id
+        ret = Nodo.reduce_frac(num, den, self.id)
         return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} + {self.children[1].get_latex()}"
@@ -262,14 +266,11 @@ class NodoSottrazione(Nodo):
         return self.children[0].value - self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
-    def operate_Z(self):
-        return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
         num = n1 * (den//d1) - n2 * (den//d2)
-        ret = Nodo.reduce_frac(num, den)
-        ret.id = self.id
+        ret = Nodo.reduce_frac(num, den, self.id)
         return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} - {self.children[1].get_latex()}"
@@ -284,14 +285,11 @@ class NodoMoltiplicazione(Nodo):
         return self.children[0].value * self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
-    def operate_Z(self):
-        return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * n2
         den = d1 * d2
-        ret = Nodo.reduce_frac(num, den)
-        ret.id = self.id
+        ret = Nodo.reduce_frac(num, den, self.id)
         return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} \\times {self.children[1].get_latex()}"
@@ -309,14 +307,11 @@ class NodoDivisione(Nodo):
             raise exceptions.DomainException("Numeri frazionari non ammessi in N o in Z!")
         retval = self.children[0].value // self.children[1].value
         return NodoNumero(retval, self.id)
-    def operate_Z(self):
-        return self.operate_N()
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * d2
         den = d1 * n2
-        ret = Nodo.reduce_frac(num, den)
-        ret.id = self.id
+        ret = Nodo.reduce_frac(num, den, self.id)
         return ret
     def get_latex_main(self):
         return f"{self.children[0].get_latex()} : {self.children[1].get_latex()}"
@@ -338,6 +333,7 @@ class NodoMenoUnario(Nodo):
             self.children[0].value *= -1
         else:
             self.children[0].children[0].value *= -1
+        self.children[0].id = self.id
         return self.children[0]
 
     def get_latex_main(self):
@@ -364,32 +360,36 @@ class NodoFrazione(Nodo):
                 self.precedence = -1
 
     def get_type(self):
-        return "Frazione"
+        if self.leaf:
+            return "NumeroRelativo"
+        else:
+            return "Frazione"
+    # L'uso di type causava dei problemi
+    def is_frazione(self):
+        return True
     def operate_R(self):
         return self.children[0].value / self.children[1].value
+    # Per N è stato scelto di non effettuare controlli su frazioni innestate.
+    # es: (1/2)/(2/4) non verrà accettato come valore 
     def operate_N(self):
         if not Nodo.is_integer_division(self.children[0].value, self.children[1].value):
             raise exceptions.DomainException("Numeri frazionari non ammessi in N o in Z!")
         retval = self.children[0].value // self.children[1].value
         return NodoNumero(retval, self.id)
-    def operate_Z(self):
-        return self.operate_N()
     def operate_Q(self):
         num, den = self.children[0], self.children[1]
-        if num.get_type() == "Frazione" and den.get_type() == "Frazione":
+        if num.is_frazione() and den.is_frazione():
             n_num = num.children[0].value * den.children[1].value
             n_den = num.children[1].value * den.children[0].value
-        elif num.get_type() == "Frazione":
+        elif num.is_frazione():
             n_num = num.children[0].value
             n_den = num.children[1].value * den.value
-        elif den.get_type() == "Frazione":
+        elif den.is_frazione():
             n_num = num.value * den.children[1].value
             n_den = den.children[0].value
         else:
             n_num, n_den = num.value, den.value
-        ret = Nodo.reduce_frac(n_num, n_den)
-        ret.id = self.id
-        ret.leaf = True
+        ret = Nodo.reduce_frac(n_num, n_den, self.id)
         return ret
     def get_num_and_den(self):
         return self.children[0].value, self.children[1].value
@@ -416,20 +416,18 @@ class NodoPotenza(Nodo):
         return self.children[0].value ** self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
-    def operate_Z(self):
-        return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
     def operate_Q(self):
         # L'esponente è una frazione. Lo valuto passando attraverso un reale.
         # Rischio di perdere in precisione, ma semplifica le operazioni
-        if self.children[1].get_type() == "Frazione":
+        if self.children[1].is_frazione():
             exp = Nodo.reduce_frac(
                 self.children[1].children[0].value,
                 self.children[1].children[1].value)
-            if exp.get_type() == "Frazione":
+            if exp.is_frazione():
                 exp.value = exp.operate_R()
             self.children[1] = exp
         # Controllo se il denominatore è una frazione, e lo elevo.
-        if self.children[0].get_type() == "Frazione":
+        if self.children[0].is_frazione():
             ret = NodoPotenza.raise_frac_at_pow(self.children[0], self.children[1].value)
         # Se la base è un numero intero, ma l'esponente è negativo, prima la
         # trasformo in frazione, poi opero (per evitare problemi con i reali).
@@ -444,6 +442,7 @@ class NodoPotenza(Nodo):
             if int(value) != value:
                 raise exceptions.DomainException("Frazioni all'esponente non supportata!")
             ret = NodoNumero(value, id=self.id)
+        ret.id = self.id
         return ret
     # Si rischia qualcosa con la precisione dei float, ma il procedimento è chiaro
     def raise_frac_at_pow(frac, exp):

@@ -29,3 +29,6 @@ def node2tree(root):
 
 def lcm(a, b):
     return abs(a*b) // math.gcd(a,b)
+
+def list_diff(l1, l2):
+    return [x for x in l1 if x not in l2]
