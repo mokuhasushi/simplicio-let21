@@ -145,6 +145,8 @@ class Nodo():
         pass
     def operate_N(self):
         pass
+    # In tutti i casi, tranne che per il meno unario, l'esecuzione in Z è identica
+    # a quella in N. Il controllo viene eseguito sul valore ritornato
     def operate_Z(self):
         return self.operate_N()
     def operate_Q(self):
@@ -207,8 +209,6 @@ class NodoParentesi(Nodo):
         return self.children[0].value
     def operate_N(self):
         return self.children[0]
-    # def operate_Z(self):
-    #     return self.children[0]
     def operate_Q(self):
         return self.children[0]
 
@@ -247,8 +247,6 @@ class NodoAddizione(Nodo):
         return self.children[0].value + self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
-    # def operate_Z(self):
-    #     return NodoNumero(self.children[0].value + self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
@@ -268,8 +266,6 @@ class NodoSottrazione(Nodo):
         return self.children[0].value - self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
-    # def operate_Z(self):
-    #     return NodoNumero(self.children[0].value - self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         den = utilities.lcm(d1, d2)
@@ -289,8 +285,6 @@ class NodoMoltiplicazione(Nodo):
         return self.children[0].value * self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
-    # def operate_Z(self):
-    #     return NodoNumero(self.children[0].value * self.children[1].value, id=self.id)
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * n2
@@ -313,8 +307,6 @@ class NodoDivisione(Nodo):
             raise exceptions.DomainException("Numeri frazionari non ammessi in N o in Z!")
         retval = self.children[0].value // self.children[1].value
         return NodoNumero(retval, self.id)
-    # def operate_Z(self):
-    #     return self.operate_N()
     def operate_Q(self):
         n1, d1, n2, d2 = self.get_children_nums_and_dens()
         num = n1 * d2
@@ -377,13 +369,13 @@ class NodoFrazione(Nodo):
         return True
     def operate_R(self):
         return self.children[0].value / self.children[1].value
+    # Per N è stato scelto di non effettuare controlli su frazioni innestate.
+    # es: (1/2)/(2/4) non verrà accettato come valore 
     def operate_N(self):
         if not Nodo.is_integer_division(self.children[0].value, self.children[1].value):
             raise exceptions.DomainException("Numeri frazionari non ammessi in N o in Z!")
         retval = self.children[0].value // self.children[1].value
         return NodoNumero(retval, self.id)
-    # def operate_Z(self):
-    #     return self.operate_N()
     def operate_Q(self):
         num, den = self.children[0], self.children[1]
         if num.is_frazione() and den.is_frazione():
@@ -424,15 +416,10 @@ class NodoPotenza(Nodo):
         return self.children[0].value ** self.children[1].value
     def operate_N(self):
         return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
-    # def operate_Z(self):
-    #     return NodoNumero(self.children[0].value ** self.children[1].value, id = self.id)
     def operate_Q(self):
         # L'esponente è una frazione. Lo valuto passando attraverso un reale.
         # Rischio di perdere in precisione, ma semplifica le operazioni
-        # print("OPERATEQ POW", self)
-        # print(isinstance(self.children[0], NodoFrazione))
         if self.children[1].is_frazione():
-            # print("1")
             exp = Nodo.reduce_frac(
                 self.children[1].children[0].value,
                 self.children[1].children[1].value)
@@ -441,19 +428,16 @@ class NodoPotenza(Nodo):
             self.children[1] = exp
         # Controllo se il denominatore è una frazione, e lo elevo.
         if self.children[0].is_frazione():
-            # print("2")
             ret = NodoPotenza.raise_frac_at_pow(self.children[0], self.children[1].value)
         # Se la base è un numero intero, ma l'esponente è negativo, prima la
         # trasformo in frazione, poi opero (per evitare problemi con i reali).
         elif self.children[1].value < 0:
-            # print("3")
             ret = NodoPotenza.raise_frac_at_pow(
                 NodoFrazione(children=[self.children[0], NodoNumero(1)],
                 domain='Q'),
                 self.children[1].value)
         # Base intera, esponente positivo
         else:
-            # print("4")
             value = self.children[0].value ** self.children[1].value
             if int(value) != value:
                 raise exceptions.DomainException("Frazioni all'esponente non supportata!")
