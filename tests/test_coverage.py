@@ -33,12 +33,12 @@ def test_semplici_Q():
         smp.string2latex(t, 'Q')
     assert True
 
-# Tempo di esecuzione: +5 secondi (su macchina linux con processore i7 di 7ima gen)
+# Tempo di esecuzione: +4 secondi (su macchina linux con processore i7 di 7ima gen)
 # def test_lungo():
 #     smp.string2latex(caso_lungo, 'Q')
 #     assert True
 
-# Tempo di esecuzione: +35 secondi (su macchina linux con processore i7 di 7ima gen)
+# Tempo di esecuzione: +30 secondi (su macchina linux con processore i7 di 7ima gen)
 # def test_lungo_2():
 #     smp.string2latex(caso_lungo_2, 'Q')
 #     assert True

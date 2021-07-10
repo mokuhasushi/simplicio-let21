@@ -22,7 +22,7 @@ operatori_unari = {'-', '~'}
 parentesi = {'(':')', '[':']', '{':'}'}
 
 # Precedenze degli operatori.
-precedenze_operatori = {'^' : 5, '/' : 4, '~' : 3,
+precedenze_operatori = {'^' : 5, '/' : 3, '~' : 4,
     '*' : 2, ':' : 2, '+' : 1, '-': 1, 'x' : 0}
 
 # Operatori e nodi. Per il momento sto aggiungendo molte cose, per vedere cosa funziona

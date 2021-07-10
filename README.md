@@ -40,6 +40,9 @@ Una chiamata di esempio:
 Se si desidera visualizzare l'albero generato dal parser, si può usare la funzione `node2tree(nodo)` del modulo *utilities*. Per questa visualizzazione viene usato il supporto di liblet.
 
 ### Problemi noti
+
+Precedenza - su /
+
 Rispetto alle specifiche richieste, il solo problema noto riguarda l'ordine di esecuzione delle operazioni. Infatti, benchè la computazione sia corretta, puù capitare che operazioni con un ordine di precedenza più basso vengano eseguite prima di altre con un ordine più alto. \
 Espressione di esempio: 1 + 2^3 + 12:3. In questo caso l'operazione 12:3 viene eseguita prima di 2^3\
 Questo problema è dovuto al fatto che la maggior parte delle funzioni usate non hanno come scopo la modifica dell'albero, ovvero con poche eccezioni non vengono salvate informazioni sul tipo di operazioni corrispondenti ai nodi dei sottoalberi. L'ordine corretto di esecuzione è assicurato dalla struttura dell'albero generato dal parser (shunting yard), che interpreta correttamente le associatività e le precedenza delle operazioni.\
