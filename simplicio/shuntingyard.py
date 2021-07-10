@@ -5,15 +5,12 @@
 # P --> V | "(" E ")" | U P
 # B --> "+" | "-" | "*" | ":" | "/" | "^"
 # U --> "-" | "~"
-# V --> (([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(e.[0-9]+)?
+# V --> (([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(e-?[0-9]+)?
 
 # Dove V è stato espresso per comodità con una regex. Qui sotto una versione più
 # leggibile. Quella sopra è dovuta al caso accettato ".1", ovvero numero decimale
 # scritto partendo con un punto
 # V --> [0-9]+(\.[0-9]*)?(e[0-9]+)?
-# UNA NOTA IMPORTANTE: dopo la 'e|E' viene accettato qualsiasi carattere. Questo
-# permette di parsare esponenti negativi. Un controllo non richiede particolari
-# complicazioni, ma si presume un uso corretto (al momento). 
 
 import utilities
 from exceptions import ParseException, EmptyStringException, DomainException
@@ -144,6 +141,9 @@ def v(operandi, expr, domain):
             n += expr.pop()
     if expr.peek() in {'e', 'E'}:
         expr.pop()
+        if not expr.peek().isdigit() or expr.peek == '-':
+            raise ParseException("Simbolo non riconosciuto",
+                 operandi, expr)
         e = expr.pop()
         while expr.peek().isdigit():
             e += expr.pop()

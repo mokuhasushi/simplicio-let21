@@ -21,7 +21,8 @@ casi_N_non_ok = ["-2", "4 - 8", "2^(-1)", "2^(1-2)", "3/4", "3 : 4"]
 casi_Z_ok = ["15 * 3 + 2 : 2", "15 - 4 - (3*3)", "1 * 4 - 8 + 5 - 2 + 3", "2^3", "4 / (2 * 2)",
     "-2", "4 - 8"]
 casi_Z_non_ok = [ "2^(-1)", "2^(1-2)", "3/4", "3 : 4"]
-caso_notazione_scientifica_ok_R = "4 - (8.2e1 + 5 - .2 * 3)"
+caso_notazione_scientifica_ok_R = "4e100 - (8.2e1 + 5 - .2 * 3)"
+caso_notazione_scientifica_non_ok_R = "4e100 - (8.2ee1 + 5 - .2 * 3)"
 caso_notazione_scientifica_ok_N = "4 + (8.2e1 + 5 - 2 * 3)"
 caso_notazione_scientifica_non_ok_N = "4 + (8.2e1 + 5 - .2 * 3)"
 def test_prova():
@@ -110,6 +111,10 @@ def test_Z_non_ok():
     assert True
 def test_notazione_scientifica_R():
     smp.string2latex(caso_notazione_scientifica_ok_R, 'R')
+    assert True
+def test_notazione_scientifica_R_non_ok():
+    with pytest.raises(exc.ParseException):
+        smp.string2latex(caso_notazione_scientifica_non_ok_R, 'R')
     assert True
 def test_notazione_scientifica_N_ok():
     smp.string2latex(caso_notazione_scientifica_ok_N, 'N')

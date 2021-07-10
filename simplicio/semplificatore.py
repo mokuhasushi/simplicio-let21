@@ -101,8 +101,10 @@ class Semplificatore():
                 # caso particolare, ottenuto mettendo tutta l'espressione
                 # dentro le parentesi. il metodo trova nodo ritorna
                 # par = cur = root. I test sui figli ovviamente falliscono
-                elif parent.id == solving.id:
-                    parent = solving
+                # NON DOVREBBE PIU' SERVIRE. TUTTAVIA NON HO AVUTO MODO DI PENSARCI
+                # A FONDO
+                # elif parent.id == solving.id:
+                    # parent = solving
                 # Come dice l'errore, non dovrebbe mai accadere. Tuttavia
                 # è stata lasciata la riga come promemoria. Durante lo sviluppo
                 # è accaduto che venisse sollevata
