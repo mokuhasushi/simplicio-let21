@@ -128,6 +128,12 @@ class Semplificatore():
             to_solve = self.get_pfm_nodes(p_cur)
             to_solve += [p_cur.children[0].id]
 
+            remove = []
+            for i in range(len(to_solve) - 1):
+                if abs(to_solve[i+1] - to_solve[i]) == 1:
+                    remove += [to_solve[i]]
+            to_solve = list_diff(to_solve, remove)
+
             solved, txts = self.solve_node(p_cur, to_solve)
             texts += txts
             # elimino la parentesi una volta che è stat risolta
@@ -145,6 +151,11 @@ class Semplificatore():
         # Ho finito con le parentesi, risolvo la radice, con la stessa logica
         to_solve = self.get_pfm_nodes(self.root)
         to_solve += [self.root.id]
+        remove = []
+        for i in range(len(to_solve) - 1):
+            if abs(to_solve[i+1] - to_solve[i]) == 1:
+                remove += [to_solve[i]]
+        to_solve = list_diff(to_solve, remove)
 
         _, txts = self.solve_node(self.root, to_solve)
 

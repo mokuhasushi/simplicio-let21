@@ -141,7 +141,7 @@ def v(operandi, expr, domain):
             n += expr.pop()
     if expr.peek() in {'e', 'E'}:
         expr.pop()
-        if not expr.peek().isdigit() or expr.peek == '-':
+        if not (expr.peek().isdigit() or expr.peek() == '-'):
             raise ParseException("Simbolo non riconosciuto",
                  operandi, expr)
         e = expr.pop()
