@@ -114,6 +114,19 @@ class Semplificatore():
                     parent, solving = self.find_node(to_solve[0])
         return solving, texts
 
+    def remove_subsequent_nodes(self, to_solve):
+        remove = []
+        for i in range(len(to_solve) - 1):
+            # questo mi genera un dubbio, ma non sono riuscito a trovare casi
+            # in cui si dimostri fondato. Caso in cui un figlio di una potenza
+            # sia un meno unario, e quindi la potenza non venga più risolta
+            # nell'ordine corretto. 
+            # es: 1:2 + 2^(-1) + 1
+            if abs(to_solve[i+1] - to_solve[i]) == 1:
+                remove += [to_solve[i]]
+        to_solve = list_diff(to_solve, remove)
+        return to_solve
+
     # risolve tutta l'equazione, a partire dalle parentesi
     def solve(self):
         # E' stato deciso di lasciare come prima stringa l'espressione iniziale
@@ -127,12 +140,9 @@ class Semplificatore():
             # automaticamente grazie alla struttura dell'albero
             to_solve = self.get_pfm_nodes(p_cur)
             to_solve += [p_cur.children[0].id]
-
-            remove = []
-            for i in range(len(to_solve) - 1):
-                if abs(to_solve[i+1] - to_solve[i]) == 1:
-                    remove += [to_solve[i]]
-            to_solve = list_diff(to_solve, remove)
+            # rimuovo dalla lista nodi padre-figlio. Questo permette di risolvere
+            # in un solo colpo meno unari multipli
+            to_solve = self.remove_subsequent_nodes(to_solve)
 
             solved, txts = self.solve_node(p_cur, to_solve)
             texts += txts
@@ -151,11 +161,7 @@ class Semplificatore():
         # Ho finito con le parentesi, risolvo la radice, con la stessa logica
         to_solve = self.get_pfm_nodes(self.root)
         to_solve += [self.root.id]
-        remove = []
-        for i in range(len(to_solve) - 1):
-            if abs(to_solve[i+1] - to_solve[i]) == 1:
-                remove += [to_solve[i]]
-        to_solve = list_diff(to_solve, remove)
+        to_solve = self.remove_subsequent_nodes(to_solve)
 
         _, txts = self.solve_node(self.root, to_solve)
 
